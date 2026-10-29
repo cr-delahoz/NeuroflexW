@@ -1,0 +1,28 @@
+<header class="nf-topbar">
+    <div class="flex flex-col gap-4 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-10">
+        <div>
+            <p class="nf-kicker">{{ subheading }}</p>
+            <h2 class="mt-2 text-2xl font-semibold text-ink-900 sm:text-[1.7rem]">{{ heading }}</h2>
+        </div>
+        <div class="flex items-center gap-3">
+            {% if online_back %}
+            <form method="post" action="{% url 'offline_mode:go_online' %}" data-loading-text="Volviendo…">
+                {% csrf_token %}
+                <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                    Volver al Panel
+                </button>
+            </form>
+            {% endif %}
+            <div class="hidden rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm text-slate-600 sm:block">
+                Sesion iniciada como <span class="font-semibold text-ink-900">{{ request.user.username }}</span>
+            </div>
+            <span class="text-xs font-medium text-slate-400">v{{ dashboard_version }}</span>
+            <form method="post" action="{% url 'accounts:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                    Cerrar sesion
+                </button>
+            </form>
+        </div>
+    </div>
+</header>

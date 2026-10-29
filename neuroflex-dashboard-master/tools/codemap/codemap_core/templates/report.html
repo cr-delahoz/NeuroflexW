@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codemap</title>
+<style>
+  :root {
+    --bg: #f5f8fa; --surface: #ffffff; --ink: #1f2933; --muted: #52606d; --line: #d9e2ec;
+    --petrol: #0f4c5c; --blue: #2a6f97; --blue-soft: #e3eff7;
+    --add: #1e7a46; --add-bg: #e6f4ea; --del: #b42318; --del-bg: #fdecea;
+    --move: #5b4b8a; --move-bg: #efeaf7; --warn: #a15c07; --warn-bg: #fef3c7;
+    --code-add: #e9f7ee; --code-del: #fdeeee; --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 17px/1.55 system-ui, "Segoe UI", Roboto, Arial, sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+  header.top { background: var(--petrol); color: #fff; padding: 20px 0 18px; }
+  header.top .wrap { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: flex-end; justify-content: space-between; }
+  h1 { margin: 0; font-size: 26px; letter-spacing: .2px; }
+  #meta { margin: 4px 0 0; color: #cfe3ea; font-size: 15px; }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px; }
+  .stat { background: rgba(255,255,255,.12); border-radius: 8px; padding: 6px 12px; font-size: 15px; }
+  .stat b { font-size: 18px; }
+  .stat.alert { background: #fff; color: var(--del); }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 20px 0 8px; }
+  .seg { display: inline-flex; border: 1px solid var(--blue); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; background: var(--surface); color: var(--blue); padding: 8px 14px; font: inherit; font-size: 15px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--blue); color: #fff; }
+  input[type=search] { flex: 1 1 220px; min-width: 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 15px; background: var(--surface); }
+  .btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 8px 12px; font: inherit; font-size: 15px; cursor: pointer; }
+  .btn:hover, .seg button:hover { filter: brightness(.96); }
+  :focus-visible { outline: 3px solid #f0b429; outline-offset: 2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .chips .label { color: var(--muted); font-size: 14px; align-self: center; margin-right: 4px; }
+  .chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 3px 12px; font: inherit; font-size: 14px; cursor: pointer; color: var(--ink); }
+  .chip[aria-pressed="true"] { background: var(--petrol); border-color: var(--petrol); color: #fff; }
+  #visible { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+
+  .sec { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+  .sec-h { margin: 0; }
+  .sec-h button { width: 100%; display: flex; gap: 10px; align-items: center; text-align: left; border: 0; background: var(--blue-soft);
+                  color: var(--petrol); font: inherit; font-size: 19px; font-weight: 650; padding: 12px 16px; cursor: pointer; }
+  .sec-h .caret { transition: transform .15s; display: inline-block; width: 1em; }
+  .sec-h button[aria-expanded="false"] .caret { transform: rotate(-90deg); }
+  .count { background: var(--petrol); color: #fff; border-radius: 999px; font-size: 13px; padding: 1px 9px; font-weight: 600; }
+  .sec-d { margin: 0; padding: 6px 16px 0; color: var(--muted); font-size: 14px; }
+  .changes { list-style: none; margin: 0; padding: 6px 0; }
+  .chg { border-top: 1px solid var(--line); }
+  .chg:first-child { border-top: 0; }
+  .row { width: 100%; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: start; text-align: left;
+         border: 0; background: none; font: inherit; color: inherit; padding: 12px 16px 4px; cursor: pointer; }
+  .row:hover { background: #f8fbfd; }
+  .sum code, .tech code { font-family: var(--mono); font-size: .9em; background: #eef2f6; padding: 0 4px; border-radius: 4px; }
+  .tech { font-family: var(--mono); font-size: 14px; color: var(--ink); word-break: break-word; }
+  .badge { font-size: 13px; font-weight: 650; border-radius: 6px; padding: 2px 8px; white-space: nowrap; margin-top: 2px; }
+  .t-añadido { background: var(--add-bg); color: var(--add); }
+  .t-modificado { background: var(--blue-soft); color: var(--blue); }
+  .t-eliminado { background: var(--del-bg); color: var(--del); }
+  .t-movido { background: var(--move-bg); color: var(--move); }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; padding: 0 16px 12px; padding-left: calc(16px + 1px); font-size: 14px; color: var(--muted); }
+  .path { font-family: var(--mono); font-size: 13px; word-break: break-all; }
+  .tag { border-radius: 999px; padding: 1px 9px; font-size: 13px; font-weight: 600; background: #eef2f6; color: var(--muted); }
+  .tag.r2 { background: var(--warn-bg); color: var(--warn); }
+  .tag.r3 { background: var(--del-bg); color: var(--del); }
+  .copy { border: 0; background: none; color: var(--blue); font: inherit; font-size: 13px; cursor: pointer; text-decoration: underline; padding: 0; }
+  .code { margin: 0 16px 14px; border: 1px solid var(--line); border-radius: 8px; overflow-x: auto; background: #fbfcfd; }
+  .code table { border-collapse: collapse; width: 100%; font-family: var(--mono); font-size: 13.5px; line-height: 1.5; }
+  .code td { padding: 0 8px; white-space: pre; vertical-align: top; }
+  .code td.no { color: #9aa5b1; text-align: right; user-select: none; width: 1%; }
+  .code td.sg { user-select: none; width: 1%; color: var(--muted); }
+  .code tr.add { background: var(--code-add); } .code tr.add td.sg { color: var(--add); }
+  .code tr.del { background: var(--code-del); } .code tr.del td.sg { color: var(--del); }
+  .code tr.gap td { color: #9aa5b1; background: #f1f4f7; text-align: center; font-style: italic; }
+  .empty { background: var(--surface); border: 1px dashed var(--line); border-radius: 12px; padding: 32px; text-align: center; color: var(--muted); }
+  .legend { color: var(--muted); font-size: 13px; margin: 20px 0 32px; }
+  .stat.warn { background: var(--warn-bg); color: var(--warn); }
+  .panel { border-radius: 12px; padding: 14px 16px; margin: 20px 0 0; border: 1px solid var(--line); background: var(--surface); }
+  .panel h2 { margin: 0 0 6px; font-size: 17px; color: var(--petrol); }
+  .panel p { margin: 0; }
+  .panel.ai { border-left: 5px solid var(--blue); }
+  .panel.warnbox { border-left: 5px solid #d97706; background: #fffbeb; }
+  .panel.warnbox h2 { color: var(--warn); }
+  .panel ul { margin: 8px 0 0; padding: 0; list-style: none; }
+  .panel li { margin: 6px 0; padding-left: 12px; border-left: 2px solid #f3d9a4; }
+  .panel details summary { cursor: pointer; color: var(--blue); margin-top: 8px; }
+  .linkbtn { display: block; border: 0; background: none; color: var(--blue); font: inherit; cursor: pointer; text-decoration: underline; padding: 0; text-align: left; }
+  .sum code, .panel code, .tech { overflow-wrap: anywhere; }
+  .panel .btn { margin-top: 10px; }
+  .small { font-size: 14px; color: var(--muted); }
+  .ai-badge { display: inline-block; font-size: 12px; font-weight: 650; color: var(--blue); background: var(--blue-soft); border-radius: 6px; padding: 0 6px; margin-right: 6px; vertical-align: 1px; }
+  .rule { display: block; font-size: 14px; color: var(--muted); margin-top: 3px; }
+  .note { font-size: 12.5px; font-weight: 650; border-radius: 6px; padding: 1px 8px; }
+  .note.no_declarado { background: var(--warn-bg); color: var(--warn); }
+  .note.desactualizado { background: var(--warn-bg); color: var(--warn); }
+  .chg.no_declarado { box-shadow: inset 4px 0 0 #d97706; }
+  .chg.flash { animation: flash 1.2s ease-out; }
+  @keyframes flash { from { background: #fff3c4; } to { background: transparent; } }
+  @media (max-width: 600px) {
+    body { font-size: 16px; }
+    .row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div>
+      <h1>Codemap</h1>
+      <p id="meta"></p>
+    </div>
+    <div class="stats" id="stats"></div>
+  </div>
+</header>
+<main class="wrap">
+  <div id="ai"></div>
+  <section class="toolbar" aria-label="Controles">
+    <div class="seg" role="group" aria-label="Nivel de detalle">
+      <button type="button" data-mode="simple" aria-pressed="true">Resumen simple</button>
+      <button type="button" data-mode="tecnico" aria-pressed="false">Técnico</button>
+    </div>
+    <input type="search" id="q" placeholder="Buscar archivo, función o texto…" aria-label="Buscar">
+    <button type="button" class="btn" id="expand">Abrir todo el código</button>
+    <button type="button" class="btn" id="collapse">Cerrar todo</button>
+  </section>
+  <div class="chips" id="tagfilters" aria-label="Filtrar por etiqueta"></div>
+  <p id="visible" aria-live="polite"></p>
+  <div id="feed"></div>
+  <p class="legend">Haz clic en un cambio para ver las líneas de código que lo respaldan.
+    Las etiquetas en rojo marcan cambios de riesgo alto (borrado de datos, secretos, controles de acceso);
+    en ámbar, riesgo medio (red, procesos, dependencias). Los textos marcados «según la IA» son lo que el agente
+    dice que hizo; debajo, en gris, está el resumen que Codemap calcula del diff para contrastarlos.</p>
+</main>
+<script>const DATA = /*__CODEMAP_DATA__*/null;</script>
+<script>
+(function () {
+  "use strict";
+  const TYPE_LABEL = { "añadido": "Nuevo", "modificado": "Modificado", "eliminado": "Eliminado", "movido": "Movido" };
+  const RISK = {};
+  const state = { mode: "simple", tags: new Set(), q: "", undeclared: false };
+  const NOTE_LABEL = { "no_declarado": "No declarado por la IA", "desactualizado": "Anotación desactualizada" };
+
+  function store(key, value) { try { localStorage.setItem("codemap." + key, value); } catch (e) {} }
+  function load(key) { try { return localStorage.getItem("codemap." + key); } catch (e) { return null; } }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  function rich(s) { return esc(s).replace(/`([^`]+)`/g, "<code>$1</code>"); }
+  function el(tag, attrs, html) {
+    const node = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) node.setAttribute(k, v);
+    if (html !== undefined) node.innerHTML = html;
+    return node;
+  }
+  function whereOf(c) {
+    const ev = c.evidencia && c.evidencia[0];
+    return ev ? ev.archivo + ":" + ev.linea_inicio : c.archivo;
+  }
+
+  function renderHeader() {
+    const t = DATA.totales;
+    const base = DATA.base + (DATA.base_commit ? " (" + DATA.base_commit + ")" : "");
+    const when = new Date(DATA.generado).toLocaleString("es");
+    document.getElementById("meta").textContent = DATA.repo + " · comparado con " + base + " · " + DATA.modo + " · " + when;
+    const stats = document.getElementById("stats");
+    const items = [[t.cambios, t.cambios === 1 ? "cambio" : "cambios"], [t.archivos, t.archivos === 1 ? "archivo" : "archivos"],
+                   ["+" + t["añadidas"] + " / −" + t.eliminadas, "líneas"]];
+    for (const [n, label] of items) stats.appendChild(el("span", { class: "stat" }, "<b>" + esc(n) + "</b> " + label));
+    if (t.riesgo_alto) stats.appendChild(el("span", { class: "stat alert" }, "<b>" + t.riesgo_alto + "</b> de riesgo alto"));
+    if (t.no_declarados) stats.appendChild(el("span", { class: "stat warn" }, "<b>" + t.no_declarados + "</b> no declarados"));
+  }
+
+  function focusChange(i) {
+    state.tags.clear(); state.q = ""; document.getElementById("q").value = "";
+    for (const chip of document.querySelectorAll("#tagfilters .chip")) chip.setAttribute("aria-pressed", "false");
+    applyFilters();
+    const li = document.getElementById("chg-" + i);
+    const body = li.closest(".sec").querySelector("[id^=sec-]");
+    if (body.hidden) li.closest(".sec").querySelector(".sec-h button").click();
+    const row = li.querySelector(".row");
+    if (row.getAttribute("aria-expanded") !== "true") row.click();
+    li.scrollIntoView({ behavior: "smooth", block: "center" });
+    li.classList.remove("flash"); void li.offsetWidth; li.classList.add("flash");
+    row.focus({ preventScroll: true });
+  }
+
+  function renderAI() {
+    const box = document.getElementById("ai");
+    const annotated = DATA.cambios.some(c => c.estado_anotacion);
+    if (DATA.tarea || annotated) {
+      const panel = el("section", { class: "panel ai", "aria-label": "Tarea declarada" });
+      panel.appendChild(el("h2", {}, "Lo que la IA dice que hizo"));
+      panel.appendChild(el("p", {}, DATA.tarea ? rich(DATA.tarea) : '<span class="small">La IA anotó cambios pero no describió la tarea.</span>'));
+      if (DATA.autor_anotaciones) panel.appendChild(el("p", { class: "small" }, "Anotado por " + esc(DATA.autor_anotaciones)));
+      box.appendChild(panel);
+    } else {
+      box.appendChild(el("p", { class: "panel small" }, "La IA no anotó esta revisión: los resúmenes salen solo de las reglas de Codemap."));
+      return;
+    }
+    const missing = DATA.cambios.map((c, i) => [c, i]).filter(([c]) => c.estado_anotacion === "no_declarado");
+    if (missing.length) {
+      const panel = el("section", { class: "panel warnbox", "aria-label": "Cambios no declarados" });
+      panel.appendChild(el("h2", {}, missing.length + (missing.length === 1 ? " cambio no declarado" : " cambios no declarados") + " por la IA"));
+      panel.appendChild(el("p", { class: "small" }, "Están en el código pero la IA no los mencionó. Revísalos primero."));
+      const list = el("ul");
+      const VISIBLE = 5;
+      let rest = null;
+      for (const [n, [c, i]] of missing.entries()) {
+        const item = el("li");
+        const link = el("button", { type: "button", class: "linkbtn" }, rich(c.resumen));
+        link.addEventListener("click", () => focusChange(i));
+        item.appendChild(link);
+        item.appendChild(el("span", { class: "small path" }, esc(c.archivo)));
+        if (n < VISIBLE) { list.appendChild(item); continue; }
+        if (!rest) rest = el("ul");
+        rest.appendChild(item);
+      }
+      panel.appendChild(list);
+      if (rest) {
+        const more = el("details");
+        more.appendChild(el("summary", {}, "Ver los otros " + (missing.length - VISIBLE)));
+        more.appendChild(rest);
+        panel.appendChild(more);
+      }
+      const only = el("button", { type: "button", class: "btn", "aria-pressed": "false" }, "Mostrar solo los no declarados");
+      only.addEventListener("click", () => {
+        state.undeclared = !state.undeclared;
+        only.setAttribute("aria-pressed", String(state.undeclared));
+        only.textContent = state.undeclared ? "Mostrar todos los cambios" : "Mostrar solo los no declarados";
+        applyFilters();
+      });
+      panel.appendChild(only);
+      box.appendChild(panel);
+    }
+    const claims = DATA.declaraciones_sin_respaldo || [];
+    if (claims.length) {
+      const panel = el("section", { class: "panel warnbox", "aria-label": "Declaraciones sin respaldo" });
+      panel.appendChild(el("h2", {}, "La IA dice que cambió esto, pero no aparece en el código"));
+      const list = el("ul");
+      for (const claim of claims) list.appendChild(el("li", {}, '<span class="path">' + esc(claim.id) + "</span>: " + rich(claim.resumen)));
+      panel.appendChild(list);
+      box.appendChild(panel);
+    }
+  }
+
+  function renderFilters() {
+    const counts = {};
+    for (const c of DATA.cambios) for (const tag of c.etiquetas) {
+      counts[tag] = (counts[tag] || 0) + 1;
+      RISK[tag] = Math.max(RISK[tag] || 0, c.riesgo);
+    }
+    const box = document.getElementById("tagfilters");
+    const tags = Object.keys(counts).sort((a, b) => (RISK[b] - RISK[a]) || a.localeCompare(b));
+    if (!tags.length) return;
+    box.appendChild(el("span", { class: "label" }, "Filtrar por efecto:"));
+    for (const tag of tags) {
+      const chip = el("button", { type: "button", class: "chip", "aria-pressed": "false" }, esc(tag) + " · " + counts[tag]);
+      chip.addEventListener("click", () => {
+        state.tags.has(tag) ? state.tags.delete(tag) : state.tags.add(tag);
+        chip.setAttribute("aria-pressed", String(state.tags.has(tag)));
+        applyFilters();
+      });
+      box.appendChild(chip);
+    }
+  }
+
+  function codeTable(c) {
+    const rows = c.diff.map(line => {
+      if (line.t === "…") return '<tr class="gap"><td colspan="4">' + esc(line.x || "⋯") + "</td></tr>";
+      const cls = line.t === "+" ? "add" : line.t === "-" ? "del" : "ctx";
+      const sign = line.t === " " ? "" : (line.t === "-" ? "−" : "+");
+      return '<tr class="' + cls + '"><td class="no">' + (line.o ?? "") + '</td><td class="no">' + (line.n ?? "") +
+             '</td><td class="sg">' + sign + "</td><td>" + esc(line.x) + "</td></tr>";
+    });
+    if (!rows.length) return '<p style="padding:10px 12px;margin:0;color:var(--muted)">Sin líneas de texto que mostrar (archivo binario o movido sin cambios).</p>';
+    return '<table><thead hidden><tr><th>Línea anterior</th><th>Línea nueva</th><th>Cambio</th><th>Código</th></tr></thead><tbody>' + rows.join("") + "</tbody></table>";
+  }
+
+  function renderChange(c, i) {
+    const li = el("li", { class: "chg" + (c.estado_anotacion ? " " + c.estado_anotacion : ""), id: "chg-" + i });
+    li.dataset.tags = c.etiquetas.join("|");
+    li.dataset.estado = c.estado_anotacion || "";
+    li.dataset.search = [c.archivo, c.archivo_anterior || "", c.simbolo || "", c.resumen, c.resumen_ia || "", c.resumen_tecnico].join(" ").toLowerCase();
+    const codeId = "code-" + i;
+    const row = el("button", { type: "button", class: "row", "aria-expanded": "false", "aria-controls": codeId });
+    row.appendChild(el("span", { class: "badge t-" + c.tipo_cambio }, TYPE_LABEL[c.tipo_cambio] || esc(c.tipo_cambio)));
+    const text = el("span", {});
+    if (c.resumen_ia) {
+      text.appendChild(el("span", { class: "sum" }, '<span class="ai-badge">según la IA</span>' + rich(c.resumen_ia) +
+        '<span class="rule">Codemap: ' + rich(c.resumen) + "</span>"));
+    } else {
+      text.appendChild(el("span", { class: "sum" }, rich(c.resumen)));
+    }
+    text.appendChild(el("span", { class: "tech", hidden: "" }, rich(c.resumen_tecnico)));
+    row.appendChild(text);
+    li.appendChild(row);
+
+    const meta = el("div", { class: "meta" });
+    meta.appendChild(el("span", { class: "path" }, esc(whereOf(c)) + (c.evidencia[0] && c.evidencia[0].lado === "viejo" ? " (versión anterior)" : "")));
+    if (NOTE_LABEL[c.estado_anotacion]) meta.appendChild(el("span", { class: "note " + c.estado_anotacion }, NOTE_LABEL[c.estado_anotacion]));
+    for (const tag of c.etiquetas) meta.appendChild(el("span", { class: "tag r" + (RISK[tag] >= 3 ? 3 : RISK[tag] >= 2 ? 2 : 1) }, esc(tag)));
+    const copy = el("button", { type: "button", class: "copy" }, "Copiar ruta:línea");
+    copy.addEventListener("click", () => copyText(whereOf(c), copy));
+    meta.appendChild(copy);
+    li.appendChild(meta);
+
+    const code = el("div", { class: "code", id: codeId, hidden: "" });
+    let built = false;
+    row.addEventListener("click", () => {
+      const open = row.getAttribute("aria-expanded") !== "true";
+      if (open && !built) { code.innerHTML = codeTable(c); built = true; }
+      row.setAttribute("aria-expanded", String(open));
+      code.hidden = !open;
+    });
+    li.appendChild(code);
+    return li;
+  }
+
+  function copyText(text, button) {
+    const done = () => { const old = button.textContent; button.textContent = "Copiado ✓"; setTimeout(() => button.textContent = old, 1400); };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, () => fallback());
+    } else fallback();
+    function fallback() {
+      const area = el("textarea"); area.value = text; document.body.appendChild(area); area.select();
+      try { document.execCommand("copy"); done(); } catch (e) { window.prompt("Copia la ruta:", text); }
+      area.remove();
+    }
+  }
+
+  function renderFeed() {
+    const feed = document.getElementById("feed");
+    if (!DATA.cambios.length) {
+      feed.appendChild(el("div", { class: "empty" }, "No hay cambios pendientes respecto a <b>" + esc(DATA.base) + "</b>."));
+      return;
+    }
+    const bySection = {};
+    DATA.cambios.forEach((c, i) => (bySection[c.seccion] = bySection[c.seccion] || []).push([c, i]));
+    for (const section of DATA.secciones) {
+      const items = bySection[section.nombre];
+      if (!items) continue;
+      const box = el("section", { class: "sec" });
+      const listId = "sec-" + items[0][1];
+      const toggle = el("button", { type: "button", "aria-expanded": "true", "aria-controls": listId },
+        '<span class="caret" aria-hidden="true">▾</span><span>' + esc(section.nombre) + '</span><span class="count">' + items.length + "</span>");
+      const h = el("h2", { class: "sec-h" }); h.appendChild(toggle); box.appendChild(h);
+      const body = el("div", { id: listId });
+      if (section.descripcion) body.appendChild(el("p", { class: "sec-d" }, esc(section.descripcion)));
+      const list = el("ul", { class: "changes" });
+      for (const [c, i] of items) list.appendChild(renderChange(c, i));
+      body.appendChild(list);
+      box.appendChild(body);
+      toggle.addEventListener("click", () => {
+        const open = toggle.getAttribute("aria-expanded") !== "true";
+        toggle.setAttribute("aria-expanded", String(open)); body.hidden = !open;
+      });
+      feed.appendChild(box);
+    }
+  }
+
+  function applyFilters() {
+    let shown = 0;
+    for (const li of document.querySelectorAll(".chg")) {
+      const tags = li.dataset.tags ? li.dataset.tags.split("|") : [];
+      const okTag = !state.tags.size || tags.some(t => state.tags.has(t));
+      const okText = !state.q || li.dataset.search.includes(state.q);
+      const okNote = !state.undeclared || li.dataset.estado === "no_declarado";
+      li.hidden = !(okTag && okText && okNote);
+      if (!li.hidden) shown++;
+    }
+    for (const sec of document.querySelectorAll(".sec")) {
+      sec.hidden = !sec.querySelector(".chg:not([hidden])");
+    }
+    const total = DATA.cambios.length;
+    document.getElementById("visible").textContent = shown === total ? "" : "Mostrando " + shown + " de " + total + " cambios.";
+  }
+
+  function setMode(mode) {
+    state.mode = mode; store("mode", mode);
+    for (const b of document.querySelectorAll(".seg button")) b.setAttribute("aria-pressed", String(b.dataset.mode === mode));
+    for (const n of document.querySelectorAll(".sum")) n.hidden = mode !== "simple";
+    for (const n of document.querySelectorAll(".tech")) n.hidden = mode !== "tecnico";
+  }
+
+  function setAll(open) {
+    for (const row of document.querySelectorAll(".chg:not([hidden]) .row")) {
+      if ((row.getAttribute("aria-expanded") === "true") !== open) row.click();
+    }
+  }
+
+  if (!DATA) { document.getElementById("feed").textContent = "No hay datos: genera el reporte con codemap.py."; return; }
+  renderHeader();
+  renderFilters();
+  renderFeed();
+  renderAI();
+  for (const b of document.querySelectorAll(".seg button")) b.addEventListener("click", () => setMode(b.dataset.mode));
+  document.getElementById("q").addEventListener("input", e => { state.q = e.target.value.trim().toLowerCase(); applyFilters(); });
+  document.getElementById("expand").addEventListener("click", () => setAll(true));
+  document.getElementById("collapse").addEventListener("click", () => setAll(false));
+  setMode(load("mode") === "tecnico" ? "tecnico" : "simple");
+  applyFilters();
+})();
+</script>
+</body>
+</html>

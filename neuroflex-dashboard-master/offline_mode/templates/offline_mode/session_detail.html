@@ -1,0 +1,62 @@
+{% extends "layouts/offline_layout.html" %}
+
+{% block title %}Detalle de sesion offline | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Detalle de sesion offline" subheading="Datos capturados por el visor sin conexion" online_back=offline_sync_banner.is_online %}
+{% endblock %}
+
+{% block page_content %}
+<section class="grid gap-6 max-w-3xl">
+    {% if session.status == "PENDING" %}
+        {% include "components/badge.html" with tone="warning" label="Pendiente" %}
+    {% elif session.status == "CONFIRMED" %}
+        {% include "components/badge.html" with tone="default" label="Confirmada" %}
+    {% elif session.status == "COMPLETED" %}
+        {% include "components/badge.html" with tone="success" label="Completada" %}
+    {% elif session.status == "ERROR" %}
+        {% include "components/badge.html" with tone="danger" label="Error" %}
+    {% else %}
+        {% include "components/badge.html" with tone="default" label=session.status %}
+    {% endif %}
+
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <dl class="grid gap-4 sm:grid-cols-2">
+            <div>
+                <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Identificador</dt>
+                <dd class="mt-1 text-sm font-semibold text-ink-900 break-all">{{ session.session_id }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Dispositivo</dt>
+                <dd class="mt-1 text-sm font-semibold text-ink-900">{{ session.device.name }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Terminos y condiciones aceptados</dt>
+                <dd class="mt-1 text-sm text-ink-900">
+                    version {{ session.terms_version_id }} — {{ session.terms_accepted_at|date:"d/m/Y H:i" }}
+                </dd>
+            </div>
+        </dl>
+    </div>
+
+    {% if session.patient_info %}
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <h3 class="text-lg font-semibold text-ink-900">Datos del paciente</h3>
+        <pre class="mt-3 whitespace-pre-wrap rounded-xl bg-slate-50 p-4 text-xs leading-6 text-ink-900">{{ session.patient_info }}</pre>
+    </div>
+    {% endif %}
+
+    {% if session.metrics %}
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <h3 class="text-lg font-semibold text-ink-900">Metricas capturadas</h3>
+        <pre class="mt-3 whitespace-pre-wrap rounded-xl bg-slate-50 p-4 text-xs leading-6 text-ink-900">{{ session.metrics }}</pre>
+    </div>
+    {% else %}
+        {% include "components/empty_state.html" with title="Aun no se reciben metricas del visor" description="Las metricas apareceran aqui una vez que el visor las envie." %}
+    {% endif %}
+
+    <a href="{% url 'offline_mode:panel' %}" class="inline-flex min-h-11 w-fit items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50" data-loading="true" data-loading-text="Cargando…">
+        Volver
+    </a>
+</section>
+{% endblock %}

@@ -1,0 +1,10 @@
+<div>
+    <label for="{{ field.id_for_label }}" class="nf-label">{{ field.label }}</label>
+    {{ field }}
+    {% if field.help_text %}
+    <p class="nf-helper">{{ field.help_text }}</p>
+    {% endif %}
+    {% for error in field.errors %}
+    <p class="mt-2 text-sm font-medium text-danger">{{ error }}</p>
+    {% endfor %}
+</div>

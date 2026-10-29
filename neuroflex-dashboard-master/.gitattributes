@@ -1,0 +1,20 @@
+# Auto-detect text files and normalize to LF in the repo,
+# with platform-native line endings in the working copy.
+* text=auto
+
+# Explicit overrides
+*.py text diff=python
+*.js text
+*.css text
+*.html text
+*.bat text eol=crlf
+*.sh text eol=lf
+*.md text
+*.json text
+*.yml text
+*.yaml text
+*.png binary
+*.jpg binary
+*.ico binary
+*.exe binary
+*.pkl binary

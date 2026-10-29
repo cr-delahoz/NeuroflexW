@@ -1,0 +1,50 @@
+{% extends "layouts/specialist_layout.html" %}
+
+{% block title %}Mi perfil | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Mi perfil" subheading="Informacion de tu cuenta" %}
+{% endblock %}
+
+{% block page_content %}
+<section class="grid gap-6">
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <h3 class="text-xl font-semibold text-ink-900">Datos del perfil</h3>
+        <dl class="mt-5 grid gap-4 text-sm sm:grid-cols-2">
+            <div class="rounded-2xl border border-border bg-mist px-5 py-4">
+                <dt class="font-semibold text-slate-600">Nombre</dt>
+                <dd class="mt-1 text-ink-900">{{ user.first_name }} {{ user.last_name }}</dd>
+            </div>
+            <div class="rounded-2xl border border-border bg-mist px-5 py-4">
+                <dt class="font-semibold text-slate-600">Correo</dt>
+                <dd class="mt-1 text-ink-900">{{ user.email }}</dd>
+            </div>
+            <div class="rounded-2xl border border-border bg-mist px-5 py-4">
+                <dt class="font-semibold text-slate-600">Rol</dt>
+                <dd class="mt-1 text-ink-900">{{ user.get_role_display }}</dd>
+            </div>
+            <div class="rounded-2xl border border-border bg-mist px-5 py-4">
+                <dt class="font-semibold text-slate-600">Profesion</dt>
+                <dd class="mt-1 text-ink-900">{{ user.profession.name|default:"Sin profesion asignada" }}</dd>
+            </div>
+            <div class="rounded-2xl border border-border bg-mist px-5 py-4">
+                <dt class="font-semibold text-slate-600">Estado</dt>
+                <dd class="mt-1 text-ink-900">{{ user.is_active|yesno:"Activo,Inactivo" }}</dd>
+            </div>
+            <div class="rounded-2xl border border-border bg-mist px-5 py-4">
+                <dt class="font-semibold text-slate-600">Estado de onboarding</dt>
+                <dd class="mt-1 text-ink-900">{{ user.onboarding_status|default:"—" }}</dd>
+            </div>
+            <div class="rounded-2xl border border-border bg-mist px-5 py-4">
+                <dt class="font-semibold text-slate-600">Estado de Cognito</dt>
+                <dd class="mt-1 text-ink-900">{{ user.cognito_status|default:"—" }}</dd>
+            </div>
+        </dl>
+        <div class="mt-6">
+            <a href="{% url 'dashboard:specialist' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                Volver al dashboard
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

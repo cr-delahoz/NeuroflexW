@@ -1,0 +1,49 @@
+{% extends "layouts/admin_layout.html" %}
+
+{% block title %}{{ version.title }} | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading=version.title subheading=version.version_id %}
+{% endblock %}
+
+{% block page_content %}
+<section class="grid gap-6">
+    {% if messages %}
+        {% for message in messages %}
+            {% include "components/alert.html" with tone=message.level_tag message=message %}
+        {% endfor %}
+    {% endif %}
+
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <dl class="grid gap-4 sm:grid-cols-3">
+            <div>
+                <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Version</dt>
+                <dd class="text-sm font-semibold text-ink-900">{{ version.version_id }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Idioma</dt>
+                <dd class="text-sm font-semibold text-ink-900">{{ version.language }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Estado</dt>
+                <dd>
+                    {% if version.published %}
+                        {% include "components/badge.html" with tone="success" label="Vigente" %}
+                    {% else %}
+                        {% include "components/badge.html" with tone="neutral" label="Historica" %}
+                    {% endif %}
+                </dd>
+            </div>
+        </dl>
+    </div>
+
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <h3 class="text-lg font-semibold text-ink-900">Contenido</h3>
+        <div class="mt-4 whitespace-pre-wrap rounded-xl bg-slate-50 p-4 text-sm leading-6 text-ink-900">{{ version.content|default:"Sin contenido disponible." }}</div>
+    </div>
+
+    <a href="{% url 'terms:terms-list' %}" class="inline-flex min-h-11 w-fit items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50" data-loading="true" data-loading-text="Cargando…">
+        Volver al historial
+    </a>
+</section>
+{% endblock %}

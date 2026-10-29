@@ -1,0 +1,162 @@
+{% extends "layouts/admin_layout.html" %}
+
+{% block title %}Solicitudes de Informes | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Solicitudes de informes" subheading="Revision administrativa sin exponer informacion clinica" %}
+{% endblock %}
+
+{% block page_content %}
+<section class="grid gap-6">
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+                <h3 class="text-xl font-semibold text-ink-900">Bandeja de revision</h3>
+                <p class="mt-2 text-sm leading-6 text-slate-600">
+                    Revisa solicitudes por sesion, solicitante y estado. Esta pantalla no muestra datos clinicos de la evaluacion, solo referencias administrativas necesarias para aprobar o rechazar.
+                </p>
+            </div>
+        </div>
+        <form method="get" class="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4" data-loading-text="Aplicando filtros…">
+            {% include "components/form_field.html" with field=filter_form.status %}
+            {% include "components/form_field.html" with field=filter_form.specialist %}
+            {% include "components/form_field.html" with field=filter_form.requested_at %}
+            {% include "components/form_field.html" with field=filter_form.session_id %}
+            <div class="md:col-span-2 xl:col-span-4 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:justify-between">
+                <a href="{% url 'reports:admin-list' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                    Limpiar filtros
+                </a>
+                <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                    Aplicar filtros
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if reports %}
+    <div class="rounded-panel border border-border bg-white shadow-panel">
+        <div class="overflow-x-auto">
+            <table class="nf-table nf-table-xs">
+                <thead>
+                    <tr>
+                        <th>Solicitud</th>
+                        <th>Sesion</th>
+                        <th>Solicitante</th>
+                        <th>Estado</th>
+                        <th>Solicitada</th>
+                        <th>Revisada</th>
+                        <th>Motivo de rechazo</th>
+                        <th class="min-w-[340px]">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr>
+                        <td class="font-semibold text-ink-900">#{{ report.id }}</td>
+                        <td class="font-semibold text-ink-900">{{ report.session_id }}</td>
+                        <td>
+                            <div>
+                                {% if report.requested_by %}
+                                <p class="font-semibold text-ink-900">{{ report.requested_by.username }}</p>
+                                {% if report.requested_by.get_full_name %}
+                                <p class="mt-1 text-xs text-slate-500">{{ report.requested_by.get_full_name }}</p>
+                                {% endif %}
+                                <p class="mt-1 text-xs text-slate-500">{{ report.requested_by.profession.name|default:"Sin profesion asignada" }}</p>
+                                {% else %}
+                                <p class="font-semibold text-slate-500">Especialista eliminado</p>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if report.status == "PENDING" %}
+                                {% include "components/badge.html" with tone="warning" label="Pendiente" %}
+                            {% elif report.status == "APPROVED" %}
+                                {% include "components/badge.html" with tone="success" label="Aprobado" %}
+                            {% elif report.status == "REJECTED" %}
+                                {% include "components/badge.html" with tone="danger" label="Rechazado" %}
+                            {% elif report.status == "GENERATING" %}
+                                {% include "components/badge.html" with tone="warning" label="Generando" %}
+                            {% elif report.status == "GENERATED" %}
+                                {% include "components/badge.html" with tone="success" label="Generado" %}
+                            {% else %}
+                                {% include "components/badge.html" with tone="danger" label="Error" %}
+                            {% endif %}
+                        </td>
+                        <td>{{ report.requested_at|date:"d/m/Y H:i" }}</td>
+                        <td>{{ report.reviewed_at|date:"d/m/Y H:i"|default:"Pendiente de revision" }}</td>
+                        <td>{{ report.rejection_reason|default:"Sin observaciones" }}</td>
+                        <td>
+                            {% if report.status == "PENDING" %}
+                            <button
+                                type="button"
+                                class="inline-flex min-h-10 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800"
+                                onclick="document.getElementById('review-modal-{{ report.id }}').showModal()"
+                            >
+                                Revisar solicitud
+                            </button>
+                            <dialog id="review-modal-{{ report.id }}" class="nf-modal">
+                                <div class="w-full max-w-md rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+                                    <h3 class="text-lg font-semibold text-ink-900">Revisar solicitud #{{ report.id }}</h3>
+                                    <p class="mt-1 text-sm text-slate-600">Sesion {{ report.session_id }}{% if report.requested_by %} - solicitada por {{ report.requested_by.username }}{% endif %}</p>
+
+                                    <div class="mt-5 grid gap-5">
+                                        <form method="post" action="{% url 'reports:approve' report.id %}" data-loading-text="Generando PDF…">
+                                            {% csrf_token %}
+                                            <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                                                Aprobar y generar PDF
+                                            </button>
+                                        </form>
+
+                                        <form method="post" action="{% url 'reports:reject' report.id %}" class="grid gap-3 border-t border-border pt-5" data-loading-text="Rechazando solicitud…">
+                                            {% csrf_token %}
+                                            <div>
+                                                <label for="rejection_reason_{{ report.id }}" class="nf-label">Rechazar y escribir el motivo</label>
+                                                <textarea id="rejection_reason_{{ report.id }}" name="rejection_reason" class="nf-input" rows="3">{% if active_report_id == report.id and request.POST.rejection_reason %}{{ request.POST.rejection_reason }}{% endif %}</textarea>
+                                                <p class="nf-helper">Explica de forma clara por que no puede aprobarse la solicitud.</p>
+                                                {% if active_report_id == report.id and review_form_errors %}
+                                                <p class="mt-2 text-sm font-medium text-danger">{{ review_form_errors.rejection_reason.0 }}</p>
+                                                {% endif %}
+                                            </div>
+                                            <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-danger hover:bg-rose-100">
+                                                Rechazar solicitud
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        class="mt-5 inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50"
+                                        onclick="document.getElementById('review-modal-{{ report.id }}').close()"
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </dialog>
+                            {% else %}
+                            <p class="text-sm text-slate-500">No hay acciones disponibles para el estado actual.</p>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+        {% include "components/empty_state.html" with title="No hay solicitudes de informes pendientes de gestion" description="Cuando un especialista cree nuevas solicitudes, apareceran aqui para su revision administrativa." %}
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+{% if active_report_id %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var dialog = document.getElementById("review-modal-{{ active_report_id }}");
+        if (dialog) {
+            dialog.showModal();
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

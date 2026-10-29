@@ -1,0 +1,220 @@
+{% extends "layouts/specialist_layout.html" %}
+
+{% block title %}Detalle de sesion | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Detalle de sesion" subheading="Revision clinica disponible para especialistas autorizados" %}
+{% endblock %}
+
+{% block page_content %}
+{% if loading_error %}
+    {% include "components/alert.html" with tone="error" message=loading_error %}
+{% else %}
+<section class="grid gap-6">
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-ink-700">Sesion</p>
+                <h3 class="mt-2 text-2xl font-semibold text-ink-900">{{ session.session_id }}</h3>
+                <p class="mt-3 text-sm text-slate-600">Codigo: {{ session.display_code|default:"No disponible" }}</p>
+                <p class="mt-1 text-sm text-slate-600">Fecha: {{ session.created_at_parsed|date:"d/m/Y H:i"|default:"No disponible" }}</p>
+                <p class="mt-1 text-sm text-slate-600">Usuario VR: {{ session.vr_user_email|default:"No disponible" }}</p>
+            </div>
+            <div class="grid gap-3">
+                <div>{% include "components/badge.html" with tone="default" label=session.status %}</div>
+                <div>{% include "components/badge.html" with tone=session.report_status.tone label=session.report_status.label %}</div>
+                {% if session.report_status.code == "GENERATED" and session.report_status.request_id %}
+                <a href="{% url 'reports:download' session.report_status.request_id %}" download="informe_{{ session.report_status.request_id }}.pdf" title="El informe se guardara en tu carpeta de Descargas." data-loading="true" data-loading-text="Preparando descarga…" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                    Descargar informe
+                </a>
+                {% elif session.report_status.code == "NOT_REQUESTED" or session.report_status.code == "REJECTED" or session.report_status.code == "ERROR" %}
+                <form method="post" action="{% url 'reports:create' %}" class="report-request-form grid gap-3" data-title="Solicitar informe" data-message="Se enviará una solicitud de informe para esta sesión al administrador. ¿Deseas continuar?" data-loading-text="Enviando solicitud…">
+                    {% csrf_token %}
+                    <input type="hidden" name="session_id" value="{{ session.session_id }}">
+                    <input type="hidden" name="next" value="{% url 'clinical_sessions:session-detail' session.session_id %}">
+                    <input type="hidden" name="specialist_observation" id="hidden-specialist-observation" value="">
+                    <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                        {{ session.report_status.action_label }}
+                    </button>
+                </form>
+                {% else %}
+                <span class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-mist px-4 py-2 text-sm font-semibold text-slate-600">
+                    {{ session.report_status.action_label }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        {% if session.report_status.rejection_reason %}
+        <div class="mt-5">
+            {% include "components/alert.html" with tone="error" message=session.report_status.rejection_reason %}
+        </div>
+        {% endif %}
+    </div>
+
+    <section class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <h4 class="text-lg font-semibold text-ink-900">Resultado automatizado (provisional)</h4>
+        {% if cognitive_result.available %}
+        <div class="mt-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div class="grid gap-3 sm:grid-cols-2">
+                <div class="rounded-2xl border border-border bg-mist px-4 py-4">
+                    <p class="text-sm font-semibold text-slate-600">Banda de desempeño estimada</p>
+                    <div class="mt-2">
+                        {% if cognitive_result.predicted_class == "bajo" %}
+                            {% include "components/badge.html" with tone="danger" label=cognitive_result.predicted_class %}
+                        {% elif cognitive_result.predicted_class == "medio" %}
+                            {% include "components/badge.html" with tone="warning" label=cognitive_result.predicted_class %}
+                        {% else %}
+                            {% include "components/badge.html" with tone="success" label=cognitive_result.predicted_class %}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="rounded-2xl border border-border bg-mist px-4 py-4">
+                    <p class="text-sm font-semibold text-slate-600">Probabilidad técnica de la clase</p>
+                    <p class="mt-2 text-base font-semibold text-ink-900">{{ cognitive_result.technical_confidence_label }}</p>
+                </div>
+                <div class="rounded-2xl border border-border bg-mist px-4 py-4">
+                    <p class="text-sm font-semibold text-slate-600">Probabilidades estimadas por banda</p>
+                    <ul class="mt-2 space-y-1 text-sm text-ink-900">
+                        {% for band, probability in cognitive_result.probability_labels.items %}
+                            <li>{{ band|capfirst }}: {{ probability }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="rounded-2xl border border-border bg-mist px-4 py-4 sm:col-span-2">
+                    <p class="text-sm font-semibold text-slate-600">Modelo utilizado</p>
+                    <p class="mt-2 text-base font-semibold text-ink-900">{{ cognitive_result.model_name }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="mt-5">
+            {% for warning in cognitive_result.warnings %}
+                {% include "components/alert.html" with tone="warning" message=warning %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="mt-5">
+            {% include "components/empty_state.html" with title="Resultado automatizado no disponible" description="No fue posible calcular el resultado automatizado con la informacion disponible en esta sesion." %}
+        </div>
+        <div class="mt-5">
+            {% include "components/alert.html" with tone="warning" message=cognitive_result.user_message %}
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <h4 class="text-lg font-semibold text-ink-900">Metricas de la sesion</h4>
+        {% if metrics_items %}
+        <div class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {% for item in metrics_items %}
+            <div class="rounded-2xl border border-border bg-mist px-4 py-4">
+                <p class="text-sm font-semibold text-slate-600">{{ item.label }}</p>
+                <p class="mt-2 text-base font-semibold text-ink-900">{{ item.value }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="mt-5">
+            {% include "components/empty_state.html" with title="Sin metricas disponibles" description="Esta sesion aun no tiene metricas registradas en NeuroFlex." %}
+        </div>
+        {% endif %}
+    </section>
+</section>
+{% endif %}
+
+<dialog id="report-confirm-modal" class="nf-modal" aria-labelledby="report-modal-title" aria-describedby="report-modal-message">
+    <div class="max-w-md rounded-panel bg-white p-6 shadow-panel">
+        <h3 id="report-modal-title" class="text-lg font-semibold text-ink-900 mb-2">Solicitar informe</h3>
+        <p id="report-modal-message" class="text-ink-600 mb-6">Se enviará una solicitud de informe para esta sesión al administrador. ¿Deseas continuar?</p>
+        <div class="mb-4">
+            <label for="modal-specialist-observation" class="block text-sm font-medium text-ink-900 mb-1">Observación opcional del especialista</label>
+            <textarea id="modal-specialist-observation" class="nf-input w-full" rows="3" placeholder="Escribe una observación si lo deseas…"></textarea>
+        </div>
+        <div class="flex justify-end gap-3">
+            <button type="button" id="report-modal-cancel" class="px-4 py-2 rounded-lg border border-border text-ink-700 hover:bg-ink-50">
+                Cancelar
+            </button>
+            <button type="button" id="report-modal-confirm" class="px-4 py-2 rounded-lg bg-ink-700 text-white hover:bg-ink-800">
+                Confirmar
+            </button>
+        </div>
+    </div>
+</dialog>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const modal = document.getElementById('report-confirm-modal');
+  const title = document.getElementById('report-modal-title');
+  const message = document.getElementById('report-modal-message');
+  const confirmBtn = document.getElementById('report-modal-confirm');
+  const cancelBtn = document.getElementById('report-modal-cancel');
+  let activeForm = null;
+  let isProcessing = false;
+  const confirmBtnOriginalHtml = confirmBtn.innerHTML;
+  const cancelBtnOriginalHtml = cancelBtn.innerHTML;
+
+  const SPINNER_HTML = '<svg class="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span class="ml-2">Procesando…</span>';
+
+  function resetButtons() {
+    isProcessing = false;
+    confirmBtn.disabled = false;
+    confirmBtn.removeAttribute('aria-busy');
+    confirmBtn.innerHTML = confirmBtnOriginalHtml;
+    cancelBtn.disabled = false;
+    cancelBtn.removeAttribute('aria-busy');
+    cancelBtn.innerHTML = cancelBtnOriginalHtml;
+  }
+
+  function setLoading() {
+    isProcessing = true;
+    confirmBtn.disabled = true;
+    confirmBtn.setAttribute('aria-busy', 'true');
+    confirmBtn.innerHTML = SPINNER_HTML;
+    cancelBtn.disabled = true;
+  }
+
+  function openModal(form) {
+    activeForm = form;
+    resetButtons();
+    title.textContent = form.dataset.title || 'Confirmar acción';
+    message.textContent = form.dataset.message || '¿Estás seguro de que deseas continuar?';
+    modal.showModal();
+  }
+
+  function closeModal() {
+    if (isProcessing) return;
+    modal.close();
+    activeForm = null;
+    resetButtons();
+  }
+
+  document.querySelectorAll('.report-request-form').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      openModal(form);
+    });
+  });
+
+  cancelBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', function (event) {
+    if (event.target === modal) closeModal();
+  });
+  modal.addEventListener('cancel', function (event) {
+    if (isProcessing) event.preventDefault();
+  });
+
+  confirmBtn.addEventListener('click', function () {
+    if (activeForm && !isProcessing) {
+      var observationField = document.getElementById('hidden-specialist-observation');
+      var modalTextarea = document.getElementById('modal-specialist-observation');
+      if (observationField && modalTextarea) {
+        observationField.value = modalTextarea.value;
+      }
+      setLoading();
+      activeForm.submit();
+    }
+  });
+})();
+</script>
+{% endblock %}

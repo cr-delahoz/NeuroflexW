@@ -1,0 +1,91 @@
+{% extends "layouts/admin_layout.html" %}
+
+{% block title %}Terminos y condiciones | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Terminos y condiciones" subheading="Historial de versiones y publicacion de nuevas versiones" %}
+{% endblock %}
+
+{% block page_content %}
+<section class="grid gap-6">
+    {% if messages %}
+        {% for message in messages %}
+            {% include "components/alert.html" with tone=message.level_tag message=message %}
+        {% endfor %}
+    {% endif %}
+
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <a href="{% url 'terms:terms-create' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800" data-loading="true" data-loading-text="Abriendo formulario…">
+            Nueva version
+        </a>
+        <a href="{% url 'terms:terms-list' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50" data-loading="true" data-loading-text="Sincronizando…">
+            Sincronizar historial
+        </a>
+    </div>
+
+    {% if versions %}
+    <div class="rounded-panel border border-border bg-white shadow-panel">
+        <div class="border-b border-border px-5 py-4 sm:px-6">
+            <p class="text-sm text-slate-600">Versiones registradas: <span class="font-semibold text-ink-900">{{ versions|length }}</span></p>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="nf-table">
+                <thead>
+                    <tr>
+                        <th>Identificador</th>
+                        <th>Titulo</th>
+                        <th>Idioma</th>
+                        <th>Estado</th>
+                        <th>Registrada</th>
+                        <th class="min-w-[260px]">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for version in versions %}
+                    <tr>
+                        <td class="font-semibold text-ink-900">{{ version.version_id }}</td>
+                        <td>{{ version.title }}</td>
+                        <td>{{ version.language }}</td>
+                        <td>
+                            {% if version.published %}
+                                {% include "components/badge.html" with tone="success" label="Vigente" %}
+                            {% else %}
+                                {% include "components/badge.html" with tone="neutral" label="Historica" %}
+                            {% endif %}
+                        </td>
+                        <td>{{ version.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <div class="flex items-center gap-2">
+                                {% if version.published %}
+                                <form method="post" action="{% url 'terms:terms-set-current' version.version_id version.language %}" data-loading-text="Quitando vigencia…">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="published" value="false">
+                                    <button type="submit" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-danger hover:bg-rose-50">
+                                        Quitar vigencia
+                                    </button>
+                                </form>
+                                {% else %}
+                                <form method="post" action="{% url 'terms:terms-set-current' version.version_id version.language %}" data-loading-text="Estableciendo vigencia…">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="published" value="true">
+                                    <button type="submit" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                                        Establecer como vigente
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <a href="{% url 'terms:terms-detail' version.version_id version.language %}" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50" data-loading="true" data-loading-text="Abriendo version…">
+                                    Ver
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+        {% include "components/empty_state.html" with title="Aun no hay versiones registradas" description="Sincroniza el historial o publica una nueva version de terminos." %}
+    {% endif %}
+</section>
+{% endblock %}

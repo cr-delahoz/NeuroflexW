@@ -1,0 +1,41 @@
+{% extends "layouts/specialist_layout.html" %}
+
+{% block title %}Nueva sesion | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Nueva sesion" subheading="Asocia una sesion de las gafas VR a tu cuenta usando el codigo mostrado en pantalla" %}
+{% endblock %}
+
+{% block page_content %}
+<section class="mx-auto grid max-w-3xl gap-6">
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <h3 class="text-xl font-semibold text-ink-900">Asociar sesion mediante codigo</h3>
+        <p class="mt-2 text-sm leading-6 text-slate-600">
+            Ingresa el codigo que muestran las gafas NeuroFlex VR. Una vez confirmada, la sesion pasara a formar parte de tu historial y no sera visible para otros especialistas.
+        </p>
+    </div>
+
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        {% if form.non_field_errors %}
+        <div class="mb-6">
+            {% for error in form.non_field_errors %}
+                {% include "components/alert.html" with tone="error" message=error %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" class="grid gap-6" data-loading-text="Confirmando sesión…">
+            {% csrf_token %}
+            {% include "components/form_field.html" with field=form.display_code %}
+            <div class="flex flex-col gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
+                <a href="{% url 'clinical_sessions:session-list' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                    Volver a sesiones registradas
+                </a>
+                <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                    Confirmar sesion
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

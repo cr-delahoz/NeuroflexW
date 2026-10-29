@@ -1,0 +1,290 @@
+{% extends "layouts/admin_layout.html" %}
+
+{% block title %}Usuarios | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Usuarios" subheading="Gestion de especialistas y accesos administrativos" %}
+{% endblock %}
+
+{% block page_content %}
+<section class="grid gap-6">
+    {% if messages %}
+        {% for message in messages %}
+            {% include "components/alert.html" with tone="success" message=message %}
+        {% endfor %}
+    {% endif %}
+
+    <div class="flex flex-col gap-4 rounded-panel border border-border bg-white p-5 shadow-panel sm:flex-row sm:items-start sm:justify-between sm:p-6">
+        <div class="max-w-3xl">
+            <h3 class="text-xl font-semibold text-ink-900">Listado de usuarios</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-600">
+                Administra cuentas de especialistas, revisa su ultimo acceso y controla su disponibilidad operativa sin eliminar registros.
+            </p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'accounts:user-create' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                Crear especialista
+            </a>
+        </div>
+    </div>
+
+    <form method="get" class="flex flex-col gap-4 rounded-panel border border-border bg-white p-5 shadow-panel sm:flex-row sm:items-end sm:p-6" data-loading-text="Filtrando usuarios…">
+        <div class="flex-1">
+            <label for="role" class="block text-sm font-semibold text-ink-900">Rol</label>
+            <select id="role" name="role" class="mt-2 min-h-11 w-full rounded-xl border border-border px-3 text-sm text-ink-900">
+                <option value="">Todos</option>
+                <option value="Administrator"{% if current_role == "Administrator" %} selected{% endif %}>Administrador</option>
+                <option value="Specialist"{% if current_role == "Specialist" %} selected{% endif %}>Especialista</option>
+            </select>
+        </div>
+        <div class="flex-1">
+            <label for="is_active" class="block text-sm font-semibold text-ink-900">Estado</label>
+            <select id="is_active" name="is_active" class="mt-2 min-h-11 w-full rounded-xl border border-border px-3 text-sm text-ink-900">
+                <option value="">Todos</option>
+                <option value="true"{% if current_is_active == "true" %} selected{% endif %}>Activo</option>
+                <option value="false"{% if current_is_active == "false" %} selected{% endif %}>Inactivo</option>
+            </select>
+        </div>
+        <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">Filtrar</button>
+    </form>
+
+    {% if users %}
+    <div class="rounded-panel border border-border bg-white shadow-panel">
+        <div class="border-b border-border px-5 py-4 sm:px-6">
+            <p class="text-sm text-slate-600">Usuarios registrados: <span class="font-semibold text-ink-900">{{ users|length }}</span></p>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="nf-table nf-table-xs">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Rol</th>
+                        <th>Profesion</th>
+                        <th>Estado</th>
+                        <th>Estado de onboarding</th>
+                        <th>Estado de Cognito</th>
+                        <th>Fecha de creacion</th>
+                        <th>Ultimo acceso</th>
+                        <th class="min-w-[140px]">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <div>
+                                <p class="font-semibold text-ink-900">{{ user.username }}</p>
+                                {% if user.first_name or user.last_name %}
+                                <p class="mt-1 text-xs text-slate-500">{{ user.first_name }} {{ user.last_name }}</p>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if user.role == "ADMIN" %}
+                                {% include "components/badge.html" with tone="default" label="Administrador" %}
+                            {% else %}
+                                {% include "components/badge.html" with tone="success" label="Especialista" %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.role == "SPECIALIST" %}
+                                {{ user.profession.name|default:"Sin profesion asignada" }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_active %}
+                                {% include "components/badge.html" with tone="success" label="Activo" %}
+                            {% else %}
+                                {% include "components/badge.html" with tone="danger" label="Desactivado" %}
+                            {% endif %}
+                        </td>
+                        <td>{{ user.onboarding_status|default:"—" }}</td>
+                        <td>{{ user.cognito_status|default:"—" }}</td>
+                        <td>{{ user.date_joined|date:"d/m/Y H:i" }}</td>
+                        <td>{{ user.last_login|date:"d/m/Y H:i"|default:"Sin acceso registrado" }}</td>
+                        <td>
+                            <details class="relative inline-block text-left" data-row-actions>
+                                <summary class="inline-flex min-h-10 cursor-pointer list-none items-center justify-center gap-2 rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                                    Acciones
+                                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                                    </svg>
+                                </summary>
+                                <div class="fixed z-50 w-64 rounded-xl border border-border bg-white p-2 shadow-panel" data-actions-menu>
+                                    {% if user.is_active %}
+                                    <form method="post" action="{% url 'accounts:user-deactivate' user.id %}" class="status-action-form" data-title="Desactivar cuenta" data-message="Vas a desactivar la cuenta de {{ user.get_full_name|default:user.email }}. ¿Deseas continuar?">
+                                        {% csrf_token %}
+                                        <button type="submit" class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-danger hover:bg-rose-50">
+                                            Desactivar cuenta
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <form method="post" action="{% url 'accounts:user-activate' user.id %}" class="status-action-form" data-title="Activar cuenta" data-message="Vas a activar la cuenta de {{ user.get_full_name|default:user.email }}. ¿Deseas continuar?">
+                                        {% csrf_token %}
+                                        <button type="submit" class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-success hover:bg-emerald-50">
+                                            Activar cuenta
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    <form method="post" action="{% url 'accounts:user-reset-password' user.id %}" class="status-action-form" data-title="Restablecer contraseña" data-message="Se enviará un código de recuperación al correo de {{ user.get_full_name|default:user.email }} para que defina su nueva contraseña. ¿Continuar?">
+                                        {% csrf_token %}
+                                        <button type="submit" class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                                            Restablecer contraseña
+                                        </button>
+                                    </form>
+                                    <a href="{% url 'accounts:user-edit-name' user.id %}" class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                                        Editar nombre y apellido
+                                    </a>
+                                    <form method="post" action="{% url 'accounts:user-update-role' user.id %}" class="space-y-2 px-3 py-2">
+                                        {% csrf_token %}
+                                        <label for="role-{{ user.id }}" class="block text-sm font-semibold text-ink-900">Cambiar rol</label>
+                                        <select id="role-{{ user.id }}" name="role" class="min-h-10 w-full rounded-lg border border-border px-2 text-sm text-ink-900">
+                                            <option value="Administrator"{% if user.role == "ADMIN" %} selected{% endif %}>Administrator</option>
+                                            <option value="Specialist"{% if user.role == "SPECIALIST" %} selected{% endif %}>Specialist</option>
+                                        </select>
+                                        <button type="submit" class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                                            Actualizar rol
+                                        </button>
+                                    </form>
+                                    {% if user.role == "SPECIALIST" %}
+                                    <form method="post" action="{% url 'accounts:user-update-profession' user.id %}" class="space-y-2 px-3 py-2">
+                                        {% csrf_token %}
+                                        <label for="profession-{{ user.id }}" class="block text-sm font-semibold text-ink-900">Cambiar profesion</label>
+                                        <select id="profession-{{ user.id }}" name="profession_id" class="min-h-10 w-full rounded-lg border border-border px-2 text-sm text-ink-900">
+                                            {% for profession in professions %}
+                                            <option value="{{ profession.id }}"{% if user.profession_id == profession.id %} selected{% endif %}>{{ profession.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                                            Actualizar profesion
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    {% if user.role == "SPECIALIST" %}
+                                        {% if user.can_generate_pdf_without_approval %}
+                                        <form method="post" action="{% url 'accounts:user-revoke-pdf-permission' user.id %}" onsubmit="return confirm('Este especialista volvera a requerir aprobacion del administrador para generar PDF. ¿Continuar?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-amber-700 hover:bg-amber-50">
+                                                Quitar PDF sin autorizacion
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <form method="post" action="{% url 'accounts:user-grant-pdf-permission' user.id %}" onsubmit="return confirm('Este especialista podra generar PDF sin aprobacion del administrador. ¿Continuar?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                                                Permitir PDF sin autorizacion
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </details>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+        {% include "components/empty_state.html" with title="Aun no hay usuarios registrados" description="Comienza creando un especialista para habilitar el acceso a la plataforma." %}
+        <div>
+            <a href="{% url 'accounts:user-create' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                Crear primer especialista
+            </a>
+        </div>
+    {% endif %}
+</section>
+
+<dialog id="status-confirm-modal" class="nf-modal" aria-labelledby="status-modal-title" aria-describedby="status-modal-message">
+    <div class="max-w-md rounded-panel bg-white p-6 shadow-panel">
+        <h3 id="status-modal-title" class="text-lg font-semibold text-ink-900 mb-2">Confirmar acción</h3>
+        <p id="status-modal-message" class="text-ink-600 mb-6">¿Estás seguro de que deseas cambiar el estado de esta cuenta?</p>
+        <div class="flex justify-end gap-3">
+            <button type="button" id="status-modal-cancel" class="px-4 py-2 rounded-lg border border-border text-ink-700 hover:bg-ink-50">
+                Cancelar
+            </button>
+            <button type="button" id="status-modal-confirm" class="px-4 py-2 rounded-lg bg-ink-700 text-white hover:bg-ink-800">
+                Confirmar
+            </button>
+        </div>
+    </div>
+</dialog>
+{% endblock %}
+
+{% block extra_js %}
+{% load versioned_static %}
+<script src="{% static_versioned 'js/row_actions.js' %}" defer></script>
+<script>
+(function () {
+  const modal = document.getElementById('status-confirm-modal');
+  const title = document.getElementById('status-modal-title');
+  const message = document.getElementById('status-modal-message');
+  const confirmBtn = document.getElementById('status-modal-confirm');
+  const cancelBtn = document.getElementById('status-modal-cancel');
+  let activeForm = null;
+  let isProcessing = false;
+  const confirmBtnOriginalHtml = confirmBtn.innerHTML;
+  const cancelBtnOriginalHtml = cancelBtn.innerHTML;
+
+  const SPINNER_HTML = '<svg class="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span class="ml-2">Procesando…</span>';
+
+  function resetButtons() {
+    isProcessing = false;
+    confirmBtn.disabled = false;
+    confirmBtn.removeAttribute('aria-busy');
+    confirmBtn.innerHTML = confirmBtnOriginalHtml;
+    cancelBtn.disabled = false;
+    cancelBtn.removeAttribute('aria-busy');
+    cancelBtn.innerHTML = cancelBtnOriginalHtml;
+  }
+
+  function setLoading() {
+    isProcessing = true;
+    confirmBtn.disabled = true;
+    confirmBtn.setAttribute('aria-busy', 'true');
+    confirmBtn.innerHTML = SPINNER_HTML;
+    cancelBtn.disabled = true;
+  }
+
+  function openModal(form) {
+    activeForm = form;
+    resetButtons();
+    title.textContent = form.dataset.title || 'Confirmar acción';
+    message.textContent = form.dataset.message || '¿Estás seguro de que deseas continuar?';
+    modal.showModal();
+  }
+
+  function closeModal() {
+    if (isProcessing) return;
+    modal.close();
+    activeForm = null;
+    resetButtons();
+  }
+
+  document.querySelectorAll('.status-action-form').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      openModal(form);
+    });
+  });
+
+  cancelBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', function (event) {
+    if (event.target === modal) closeModal();
+  });
+  modal.addEventListener('cancel', function (event) {
+    if (isProcessing) event.preventDefault();
+  });
+
+  confirmBtn.addEventListener('click', function () {
+    if (activeForm && !isProcessing) {
+      setLoading();
+      activeForm.submit();
+    }
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,11 @@
+ipykernel==7.3.0
+numpy==2.4.6
+pandas==3.0.6
+matplotlib==3.11.2
+seaborn==0.13.2
+scikit-learn==1.9.1
+imbalanced-learn==0.14.2
+xgboost==3.2.0
+lightgbm==4.7.0
+onnx
+skl2onnx

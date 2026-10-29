@@ -1,0 +1,47 @@
+{% extends "layouts/admin_layout.html" %}
+
+{% block title %}Crear Especialista | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Crear especialista" subheading="Alta administrativa de nuevos accesos clinicos" %}
+{% endblock %}
+
+{% block page_content %}
+<section class="mx-auto grid max-w-4xl gap-6">
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <h3 class="text-xl font-semibold text-ink-900">Nuevo usuario especialista</h3>
+        <p class="mt-2 text-sm leading-6 text-slate-600">
+            Ingresa el correo, nombre, apellido y rol. Cognito enviara y gestionara una contrasena temporal para que el usuario defina su propia contrasena al iniciar sesion.
+        </p>
+    </div>
+
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        {% if form.non_field_errors %}
+        <div class="mb-6">
+            {% for error in form.non_field_errors %}
+                {% include "components/alert.html" with tone="error" message=error %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" class="grid gap-6" data-loading-text="Guardando especialista…">
+            {% csrf_token %}
+            <div class="grid gap-6 md:grid-cols-2">
+                {% include "components/form_field.html" with field=form.email %}
+                {% include "components/form_field.html" with field=form.first_name %}
+                {% include "components/form_field.html" with field=form.last_name %}
+                {% include "components/form_field.html" with field=form.role %}
+                {% include "components/form_field.html" with field=form.profession_id %}
+            </div>
+            <div class="flex flex-col gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
+                <a href="{% url 'accounts:user-list' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                    Volver al listado
+                </a>
+                <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                    Guardar especialista
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

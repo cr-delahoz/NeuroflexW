@@ -1,0 +1,18 @@
+{% if size == "sm" %}
+{% with spinner_classes="h-4 w-4" %}
+<svg data-loading-spinner="true" class="{{ spinner_classes }} animate-spin text-current" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+</svg>
+{% endwith %}
+{% elif size == "lg" %}
+<svg data-loading-spinner="true" class="h-6 w-6 animate-spin text-current" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+</svg>
+{% else %}
+<svg data-loading-spinner="true" class="h-5 w-5 animate-spin text-current" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+</svg>
+{% endif %}

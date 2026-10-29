@@ -1,0 +1,59 @@
+{% extends "layouts/admin_layout.html" %}
+
+{% block title %}Eliminar usuario | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Eliminar cuenta" subheading="Esta accion es irreversible" %}
+{% endblock %}
+
+{% block page_content %}
+<section class="mx-auto grid max-w-2xl gap-6">
+    {% include "components/alert.html" with tone="error" message="Vas a eliminar esta cuenta de forma permanente. Esta accion no se puede deshacer." %}
+
+    {% if confirmation_error %}
+        {% include "components/alert.html" with tone="error" message=confirmation_error %}
+    {% endif %}
+
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <dl class="grid gap-4">
+            <div>
+                <dt class="text-sm font-semibold text-slate-600">Usuario</dt>
+                <dd class="mt-1 text-lg font-semibold text-ink-900">{{ target_user.username }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-semibold text-slate-600">Rol</dt>
+                <dd class="mt-1 text-base text-ink-900">
+                    {% if target_user.role == "ADMIN" %}Administrador{% else %}Especialista{% endif %}
+                </dd>
+            </div>
+        </dl>
+
+        <p class="mt-6 text-sm leading-6 text-slate-600">
+            Para confirmar, escribe la palabra <span class="font-semibold text-ink-900">{{ confirmation_word }}</span> en el siguiente campo.
+        </p>
+
+        <form method="post" class="mt-4 grid gap-6">
+            {% csrf_token %}
+            <div>
+                <label for="confirmation_word" class="nf-label">Escribe "{{ confirmation_word }}" para confirmar</label>
+                <input
+                    type="text"
+                    name="confirmation_word"
+                    id="confirmation_word"
+                    class="nf-input"
+                    autocomplete="off"
+                    required
+                >
+            </div>
+            <div class="flex flex-col gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
+                <a href="{% url 'accounts:user-list' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                    Cancelar
+                </a>
+                <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-danger hover:bg-rose-100">
+                    Eliminar cuenta definitivamente
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

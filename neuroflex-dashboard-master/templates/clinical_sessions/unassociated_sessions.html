@@ -1,0 +1,78 @@
+{% extends "layouts/admin_layout.html" %}
+
+{% block title %}Sesiones no asociadas | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Sesiones no asociadas" subheading="Sesiones que quedaron sin especialista" %}
+{% endblock %}
+
+{% block page_content %}
+<section class="grid gap-6">
+    {% if messages %}
+        {% for message in messages %}
+            {% include "components/alert.html" with tone=message.tags message=message %}
+        {% endfor %}
+    {% endif %}
+
+    {% if sessions %}
+    <div class="rounded-panel border border-border bg-white shadow-panel">
+        <div class="overflow-x-auto">
+            <table class="nf-table">
+                <thead>
+                    <tr>
+                        <th>Identificador de sesion</th>
+                        <th>Estado</th>
+                        <th>Confirmada</th>
+                        <th>Metricas</th>
+                        <th>Informe</th>
+                        <th class="min-w-[220px]">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in sessions %}
+                    <tr>
+                        <td class="font-semibold text-ink-900">{{ session.session_id }}</td>
+                        <td>{% include "components/badge.html" with tone="default" label=session.status|default:"Desconocido" %}</td>
+                        <td>{{ session.confirmed_at|date:"d/m/Y H:i"|default:"No disponible" }}</td>
+                        <td>
+                            {% if session.has_metrics %}
+                                {% include "components/badge.html" with tone="success" label="Disponible" %}
+                            {% else %}
+                                {% include "components/badge.html" with tone="danger" label="No disponible" %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if session.report %}
+                                {% include "components/badge.html" with tone="success" label="Informe disponible" %}
+                            {% else %}
+                                {% include "components/badge.html" with tone="default" label="Sin informe generado" %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if session.report %}
+                            <a href="{% url 'reports:admin-download' session.report.id %}" download="informe_{{ session.report.id }}.pdf" title="El informe se guardara en tu carpeta de Descargas." data-loading="true" data-loading-text="Preparando descarga…" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                                Descargar informe
+                            </a>
+                            {% elif session.has_metrics %}
+                            <form method="post" action="{% url 'reports:admin-generate-orphan' %}" data-loading-text="Generando informe…" onsubmit="return confirm('Se generara el informe PDF de esta sesion sin especialista asociado. ¿Continuar?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="session_id" value="{{ session.session_id }}">
+                                <button type="submit" class="inline-flex min-h-10 items-center justify-center rounded-xl bg-ink-700 px-3 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                                    Generar informe
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-sm text-slate-500">Metricas no disponibles: la sesion no se sincronizo antes de quedar huerfana.</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+        {% include "components/empty_state.html" with title="No hay sesiones sin especialista asociado" description="Cuando se elimine la cuenta de un especialista, sus sesiones e informes apareceran aqui." %}
+    {% endif %}
+</section>
+{% endblock %}

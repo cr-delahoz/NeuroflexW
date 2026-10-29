@@ -1,0 +1,29 @@
+{
+    "nombre_modelo": "NeuroFlex - Clasificador Deterioro Cognitivo",
+    "version": "1.0.0",
+    "fecha_congelado": "2026-07-09 19:41:03",
+    "framework": "TensorFlow / Keras",
+    "tipo_modelo": "Red neuronal binaria",
+    "variable_objetivo": "DeterioroCognitivo",
+    "clases": {
+        "0": "No",
+        "1": "Sí"
+    },
+    "umbral_clasificacion": 0.5,
+    "columnas_entrada": [
+        "TiempoRespuestaPararse",
+        "TiempoRespuestaPregunta1",
+        "TiempoRespuestaPregunta2",
+        "TiempoRespuestaPregunta3",
+        "TiempoReaccionVisual",
+        "TiempoCapturarNumero",
+        "TiempoRespuestaPararse_sobre_3s",
+        "TiempoRespuestaPregunta1_sobre_3s",
+        "TiempoRespuestaPregunta2_sobre_3s",
+        "TiempoRespuestaPregunta3_sobre_3s",
+        "TiempoReaccionVisual_sobre_3s",
+        "TiempoCapturarNumero_sobre_3s"
+    ],
+    "regla_clinica": "Los valores mayores a 3 segundos se topan en 3.0 y se agrega variable binaria *_sobre_3s",
+    "accuracy_test": 0.8514999747276306
+}

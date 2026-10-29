@@ -1,0 +1,326 @@
+{% extends "layouts/offline_layout.html" %}
+
+{% block title %}Panel de control | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Panel de control" subheading="Emparejamiento de visores y sesiones locales" online_back=offline_sync_banner.is_online %}
+{% endblock %}
+
+{% block page_content %}
+<section class="grid gap-6" id="panel-root"
+         data-status-url="{% url 'offline_mode:panel_status' %}"
+         data-active-count="{{ active_sessions|length }}"
+         data-searching="{% if searching %}1{% else %}0{% endif %}"
+         data-pending="{% if pending %}1{% else %}0{% endif %}">
+    {% if messages %}
+        {% for message in messages %}
+            {% include "components/alert.html" with tone=message.level_tag message=message %}
+        {% endfor %}
+    {% endif %}
+
+    {% if not terms %}
+    <div class="rounded-panel border border-warning/30 bg-amber-50 px-4 py-3 text-sm leading-6 text-ink-900">
+        No hay terminos y condiciones disponibles. Conecte internet e inicie sesion online para sincronizarlos.
+    </div>
+    {% endif %}
+
+    {# 1. Lo que requiere accion inmediata va primero: sesiones del visor en curso #}
+    {% if active_sessions %}
+    <div class="rounded-panel border-2 border-teal-500 bg-white shadow-panel" id="unlinked-box">
+        <div class="border-b border-border px-5 py-4 sm:px-6">
+            <h3 class="text-lg font-semibold text-ink-900">Sesiones en curso del visor</h3>
+            <p class="mt-1 text-sm text-slate-600">Vincule la sesion con su usuario. Solo pasara a la tabla inferior cuando la sesion termine.</p>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="nf-table nf-table-xs">
+                <thead>
+                    <tr>
+                        <th>Sesion</th>
+                        <th>Fecha</th>
+                        <th>Dispositivo</th>
+                        <th>Estado</th>
+                        <th class="min-w-[260px]">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in active_sessions %}
+                    <tr>
+                        <td class="font-semibold text-ink-900">{{ s.session_id|slice:":8" }}…</td>
+                        <td>{{ s.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>{{ s.device.name }}</td>
+                        <td>
+                            {% if s.status == "PENDING" %}
+                                {% include "components/badge.html" with tone="warning" label="Pendiente" %}
+                            {% elif s.status == "CONFIRMED" %}
+                                {% include "components/badge.html" with tone="default" label="Vinculada" %}
+                            {% else %}
+                                {% include "components/badge.html" with tone="default" label=s.status %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="flex items-center gap-2">
+                                <a href="{% url 'offline_mode:session_detail' s.session_id %}" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50" data-loading="true" data-loading-text="Abriendo sesion…">
+                                    Ver
+                                </a>
+                                {% if s.status == "PENDING" %}
+                                <form method="post" action="{% url 'offline_mode:confirm_session' s.session_id %}" data-loading-text="Vinculando sesion…">
+                                    {% csrf_token %}
+                                    <button type="submit" class="inline-flex min-h-10 items-center justify-center rounded-xl bg-teal-600 px-4 py-2 text-sm font-bold text-white shadow-md ring-2 ring-teal-300 hover:bg-teal-700">
+                                        Vincular sesion
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <form method="post" action="{% url 'offline_mode:delete_session' s.session_id %}" data-loading-text="Eliminando sesion…">
+                                    {% csrf_token %}
+                                    <button type="submit" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-danger hover:bg-rose-50">
+                                        Eliminar
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {# 2. Visores: buscar uno nuevo y ver los ya emparejados #}
+    <div class="grid gap-6 lg:grid-cols-2">
+        <div class="rounded-panel border border-border bg-white shadow-panel" id="search-card">
+            <div class="border-b border-border px-5 py-4 sm:px-6">
+                <h3 class="text-lg font-semibold text-ink-900">Buscar dispositivo VR</h3>
+                <p class="mt-1 text-sm text-slate-600">Inicie la busqueda y active el modo de emparejamiento en el visor.</p>
+            </div>
+            <div class="grid gap-4 px-5 py-4 sm:px-6">
+                {% if pending %}
+                <form method="post" action="{% url 'offline_mode:pairing_confirm' %}" class="grid gap-4" data-loading-text="Vinculando dispositivo…">
+                    {% csrf_token %}
+                    <div class="rounded-xl bg-teal-50 px-4 py-3 text-sm leading-6 text-teal-900 ring-1 ring-teal-300">
+                        Dispositivo detectado: <span class="font-semibold">{{ pending.device_name }}</span>
+                        <span class="inline-flex items-center gap-1.5">
+                            <span class="relative flex h-2 w-2"><span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-500 opacity-75"></span><span class="relative inline-flex h-2 w-2 rounded-full bg-teal-600"></span></span>
+                        </span>
+                    </div>
+                    <div class="flex flex-wrap items-end gap-3">
+                        <div>
+                            <label for="pin" class="nf-label">PIN de 6 digitos</label>
+                            <input id="pin" name="pin" inputmode="numeric" maxlength="6" required autocomplete="off"
+                                   class="nf-input w-44 text-center text-xl tracking-widest">
+                        </div>
+                        <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-700">
+                            Vincular dispositivo
+                        </button>
+                    </div>
+                </form>
+                {% elif searching %}
+                <div class="flex items-center gap-3 rounded-xl bg-ink-50 px-4 py-3 text-ink-800" role="status">
+                    {% include "components/loading_spinner.html" with size="sm" %}
+                    <p class="text-sm leading-6">Buscando dispositivo VR cercano…</p>
+                </div>
+                {% else %}
+                <p class="text-sm leading-6 text-slate-600">La busqueda esta detenida. Presione <span class="font-semibold text-ink-900">Iniciar busqueda</span> para detectar un visor.</p>
+                {% endif %}
+
+                <div class="flex flex-wrap gap-3">
+                    {% if searching or pending %}
+                    <form method="post" action="{% url 'offline_mode:pairing_stop' %}" data-loading-text="Deteniendo…">
+                        {% csrf_token %}
+                        <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-5 py-2 text-sm font-semibold text-danger hover:bg-rose-50">
+                            {% if pending %}Cancelar emparejamiento{% else %}Detener busqueda{% endif %}
+                        </button>
+                    </form>
+                    {% else %}
+                    <form method="post" action="{% url 'offline_mode:pairing_start' %}" data-loading-text="Iniciando…">
+                        {% csrf_token %}
+                        <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-700">
+                            Iniciar busqueda
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="rounded-panel border border-border bg-white shadow-panel">
+            <div class="border-b border-border px-5 py-4 sm:px-6">
+                <h3 class="text-lg font-semibold text-ink-900">Dispositivos emparejados</h3>
+                <p class="mt-1 text-sm text-slate-600">Dispositivos activos: <span class="font-semibold text-ink-900">{{ devices|length }}</span></p>
+            </div>
+            {% if devices %}
+            <div class="overflow-x-auto">
+                <table class="nf-table">
+                    <thead>
+                        <tr>
+                            <th>Dispositivo</th>
+                            <th>Emparejado</th>
+                            <th class="min-w-[110px]">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in devices %}
+                        <tr>
+                            <td class="font-semibold text-ink-900">{{ d.name }}</td>
+                            <td>{{ d.paired_at|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <form method="post" action="{% url 'offline_mode:device_revoke' d.pk %}" data-loading-text="Revocando dispositivo…">
+                                    {% csrf_token %}
+                                    <button type="submit" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-danger hover:bg-rose-50">
+                                        Revocar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="px-5 py-4 sm:px-6">
+                {% include "components/empty_state.html" with title="Sin dispositivos emparejados" description="Empareje un visor para continuar." %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# 3. Historial de sesiones terminadas, con la sincronizacion junto a la tabla #}
+    <div class="rounded-panel border border-border bg-white shadow-panel">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4 sm:px-6">
+            <div>
+                <h3 class="text-lg font-semibold text-ink-900">Sesiones locales</h3>
+                <p class="mt-1 text-sm text-slate-600">Sesiones registradas: <span class="font-semibold text-ink-900">{{ sessions|length }}</span></p>
+            </div>
+            {% if offline_sync_banner.is_online and offline_sync_banner.pending_count %}
+            <button id="btn-sync" data-url="{% url 'offline_mode:sync_now' %}"
+                    class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                Sincronizar ahora
+            </button>
+            {% endif %}
+        </div>
+        {% if sessions %}
+        <div class="overflow-x-auto">
+            <table class="nf-table nf-table-xs">
+                <thead>
+                    <tr>
+                        <th>Sesion</th>
+                        <th>Fecha</th>
+                        <th>Dispositivo</th>
+                        <th>Estado</th>
+                        <th class="min-w-[220px]">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in sessions %}
+                    <tr>
+                        <td class="font-semibold text-ink-900">{{ s.session_id|slice:":8" }}…</td>
+                        <td>{{ s.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>{{ s.device.name }}</td>
+                        <td>
+                            {% if s.status == "COMPLETED" %}
+                                {% include "components/badge.html" with tone="success" label="Completada" %}
+                            {% elif s.status == "SYNCING" %}
+                                {% include "components/badge.html" with tone="default" label="Sincronizando" %}
+                            {% elif s.status == "ERROR" %}
+                                {% include "components/badge.html" with tone="danger" label="Error" %}
+                            {% else %}
+                                {% include "components/badge.html" with tone="default" label=s.status %}
+                            {% endif %}
+                            {% if s.status == "ERROR" %}
+                                <p class="mt-1 text-xs text-danger">{{ s.last_sync_error }}</p>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="flex items-center gap-2">
+                                <a href="{% url 'offline_mode:session_detail' s.session_id %}" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50" data-loading="true" data-loading-text="Abriendo sesion…">
+                                    Ver
+                                </a>
+                                {% if s.status == "ERROR" %}
+                                <form method="post" action="{% url 'offline_mode:delete_session' s.session_id %}" data-loading-text="Eliminando sesion…">
+                                    {% csrf_token %}
+                                    <button type="submit" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-danger hover:bg-rose-50">
+                                        Eliminar
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="px-5 py-4 sm:px-6">
+            {% include "components/empty_state.html" with title="Sin sesiones locales" description="Las sesiones capturadas sin conexion apareceran aqui hasta sincronizarse." %}
+        </div>
+        {% endif %}
+    </div>
+
+    {% if terms %}
+    <p class="text-xs leading-5 text-slate-500">
+        Terminos y condiciones locales: version <span class="font-semibold">{{ terms.version_id }}</span>,
+        sincronizados el {{ terms.created_at|date:"d/m/Y H:i" }}. Conectese a internet periodicamente para mantenerlos actualizados.
+    </p>
+    {% endif %}
+</section>
+<script>
+    (function () {
+        var root = document.getElementById("panel-root");
+        if (!root) return;
+        var state = {
+            searching: root.dataset.searching === "1",
+            pending: root.dataset.pending === "1",
+            active: parseInt(root.dataset.activeCount, 10)
+        };
+        // Cada consulta mantiene viva la busqueda activa (sin recargar a mano)
+        // y recarga solo cuando cambia algo visible en el panel.
+        var timer = setInterval(async function () {
+            try {
+                var resp = await fetch(root.dataset.statusUrl, { cache: "no-store" });
+                if (!resp.ok) return;
+                var data = await resp.json();
+                if (data.searching !== state.searching
+                    || data.pending_pairing !== state.pending
+                    || data.active_count !== state.active) {
+                    clearInterval(timer);
+                    location.reload();
+                }
+            } catch (e) { /* reintenta en el proximo ciclo */ }
+        }, 2000);
+    })();
+</script>
+<script>
+    (function () {
+        var btn = document.getElementById("btn-sync");
+        if (!btn) return;
+        btn.addEventListener("click", async function () {
+            let redirecting = false;
+            window.NeuroFlexUiFeedback.start(btn, "Sincronizando.");
+            try {
+                const resp = await fetch(btn.dataset.url, {
+                    method: "POST",
+                    headers: {"X-CSRFToken": "{{ csrf_token }}"},
+                });
+                const data = await resp.json();
+                if (data.user_inactive) {
+                    alert("Su usuario no está autorizado en AWS. Las sesiones permanecen guardadas localmente.");
+                } else if (data.reauth_required) {
+                    alert("Su sesion de AWS expiró. Por favor inicie sesion con internet y vuelva a intentar.");
+                    redirecting = true;
+                    window.location.href = "{% url 'accounts:login' %}";
+                } else if (!resp.ok) {
+                    alert(data.error || "Error al sincronizar.");
+                }
+            } catch (e) {
+                alert("Error de red al sincronizar.");
+            } finally {
+                window.NeuroFlexUiFeedback.restore(btn);
+                if (!redirecting) {
+                    location.reload();
+                }
+            }
+        });
+    })();
+</script>
+{% endblock %}

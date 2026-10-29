@@ -1,0 +1,64 @@
+{
+  "excluir": [
+    "**/__pycache__/**",
+    "**/*.pyc",
+    "**/node_modules/**",
+    "staticfiles/**"
+  ],
+  "secciones": [
+    {
+      "nombre": "Tests",
+      "descripcion": "Pruebas automáticas: no afectan al usuario final.",
+      "rutas": ["**/tests/**", "**/test_*.py", "**/*_test.py", "**/tests.py", "**/tests_*.py", "**/conftest.py", "pytest.ini"]
+    },
+    {
+      "nombre": "Configuración",
+      "descripcion": "Ajustes, dependencias, empaquetado e instalador.",
+      "rutas": ["requirements*.txt", "package.json", "package-lock.json", "pyproject.toml", "**/settings*.py",
+                "config/**", "**/*.spec", "installer/**", ".gitignore", ".gitattributes", "**/*.ini", "**/*.toml",
+                "**/*.cfg", "**/.env*", "tailwind.config.js", "manage.py", "**/apps.py"]
+    },
+    {
+      "nombre": "Machine Learning",
+      "descripcion": "Modelo, construcción de variables e inferencia.",
+      "rutas": ["ml/**"]
+    },
+    {
+      "nombre": "Permisos / Seguridad",
+      "descripcion": "Usuarios, roles, autenticación y controles de acceso.",
+      "rutas": ["accounts/**", "**/permissions*.py", "**/decorators*.py", "**/middleware*.py", "**/mixins*.py"]
+    },
+    {
+      "nombre": "Datos",
+      "descripcion": "Modelos de base de datos, migraciones y fuentes de datos.",
+      "rutas": ["**/migrations/**", "**/models.py", "**/models/*.py", "**/data/**", "**/fixtures/**", "**/*.csv",
+                "**/providers*.py", "clinical_sessions/**"]
+    },
+    {
+      "nombre": "Backend / Vistas",
+      "descripcion": "Lógica que responde a cada página o acción del usuario.",
+      "rutas": ["**/views.py", "**/views/**", "**/urls.py", "**/forms.py", "**/services.py", "**/services/**",
+                "**/api*.py", "**/serializers.py", "**/jobs.py"]
+    },
+    {
+      "nombre": "UI / Diseño",
+      "descripcion": "Plantillas HTML, estilos y JavaScript de la interfaz.",
+      "rutas": ["templates/**", "**/templates/**", "static/**", "static_src/**", "**/*.html", "**/*.css", "**/*.js"]
+    },
+    {
+      "nombre": "Herramientas",
+      "descripcion": "Scripts auxiliares y utilidades de desarrollo.",
+      "rutas": ["tools/**", "scripts/**", "**/*.bat", "**/*.ps1", "**/*.sh", "neuroflex_launcher.py"]
+    },
+    {
+      "nombre": "Documentación",
+      "descripcion": "Textos explicativos, guías y notas.",
+      "rutas": ["**/*.md", "docs/**", "**/*.txt", "**/*.rst"]
+    },
+    {
+      "nombre": "Lógica de aplicación",
+      "descripcion": "Resto del código Python.",
+      "rutas": ["**/*.py"]
+    }
+  ]
+}

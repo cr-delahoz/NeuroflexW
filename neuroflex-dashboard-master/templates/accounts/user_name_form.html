@@ -1,0 +1,37 @@
+{% extends "layouts/admin_layout.html" %}
+
+{% block title %}Editar nombre | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Editar nombre" subheading=target_user.username %}
+{% endblock %}
+
+{% block page_content %}
+<section class="mx-auto grid max-w-4xl gap-6">
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        {% if form.non_field_errors %}
+        <div class="mb-6">
+            {% for error in form.non_field_errors %}
+                {% include "components/alert.html" with tone="error" message=error %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" class="grid gap-6">
+            {% csrf_token %}
+            <div class="grid gap-6 md:grid-cols-2">
+                {% include "components/form_field.html" with field=form.first_name %}
+                {% include "components/form_field.html" with field=form.last_name %}
+            </div>
+            <div class="flex flex-col gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">
+                <a href="{% url 'accounts:user-list' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                    Volver al listado
+                </a>
+                <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                    Guardar cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

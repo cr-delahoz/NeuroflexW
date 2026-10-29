@@ -1,0 +1,251 @@
+{% extends "layouts/specialist_layout.html" %}
+
+{% block title %}Sesiones | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Sesiones" subheading="Sesiones activas y historial de sesiones completadas" %}
+{% endblock %}
+
+{% block page_content %}
+<section class="grid gap-6">
+    {% for error in errors %}
+        {% include "components/alert.html" with tone="error" message=error.message %}
+    {% endfor %}
+
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="max-w-3xl">
+                <h3 class="text-xl font-semibold text-ink-900">Sesiones activas</h3>
+                <p class="mt-2 text-sm leading-6 text-slate-600">
+                    Esta lista se actualiza automaticamente mientras permanezcas en esta pagina.
+                </p>
+            </div>
+            <a href="{% url 'clinical_sessions:session-confirm' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                Asociar nueva sesion
+            </a>
+        </div>
+        <div id="active-sessions-list"
+             data-active-sessions-url="{% url 'clinical_sessions:session-active' %}"
+             class="mt-5 space-y-3">
+            {% if active_sessions %}
+                {% for session in active_sessions %}
+                <div class="rounded-2xl border border-border bg-mist px-4 py-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="font-semibold text-ink-900">{{ session.session_id }}</span>
+                        {% include "components/badge.html" with tone="success" label="Confirmado" %}
+                    </div>
+                    <span class="mt-1 block text-sm text-slate-600">Codigo: {{ session.display_code|default:"No disponible" }}</span>
+                    <span class="mt-1 block text-sm text-slate-600">Iniciada: {{ session.created_at_parsed|date:"d/m/Y H:i"|default:"No disponible" }}</span>
+                    <span class="mt-1 block text-sm text-slate-600">Usuario VR: {{ session.vr_user_email|default:"No disponible" }}</span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-sm text-slate-500">No tienes sesiones activas en este momento.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div class="max-w-3xl">
+                <h3 class="text-xl font-semibold text-ink-900">Historial de sesiones disponibles</h3>
+                <p class="mt-2 text-sm leading-6 text-slate-600">
+                    Consulta sesiones completadas, revisa sus metricas y gestiona la solicitud de informes asociados.
+                </p>
+            </div>
+            <div class="rounded-2xl border border-border bg-mist px-4 py-3 text-sm text-slate-600">
+                Total de sesiones completadas: <span class="font-semibold text-ink-900">{{ total_completed_sessions }}</span>
+            </div>
+        </div>
+        <form method="get" class="mt-6 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto_auto]" data-loading-text="Filtrando sesiones…">
+            {% include "components/form_field.html" with field=form.session_id %}
+            <div class="flex flex-col gap-1">
+                <label for="status" class="text-sm font-medium text-ink-900">Estado</label>
+                <select name="status" id="status" class="nf-input">
+                    <option value="" {% if not selected_status %}selected{% endif %}>Todos</option>
+                    <option value="confirmed" {% if selected_status == "confirmed" %}selected{% endif %}>En curso</option>
+                    <option value="completed" {% if selected_status == "completed" %}selected{% endif %}>Completadas</option>
+                </select>
+            </div>
+            <div class="flex items-end gap-3">
+                <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                    Filtrar
+                </button>
+                <a href="{% url 'clinical_sessions:session-list' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                    Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    {% if selected_status != "confirmed" %}
+        {% if completed_sessions %}
+        <div class="rounded-panel border border-border bg-white shadow-panel">
+            <div class="overflow-x-auto">
+                <table class="nf-table">
+                    <thead>
+                        <tr>
+                            <th>Identificador de sesion</th>
+                            <th>Codigo</th>
+                            <th>Fecha</th>
+                            <th>Usuario VR</th>
+                            <th>Metricas</th>
+                            <th>Estado del informe</th>
+                            <th class="min-w-[260px]">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in completed_sessions %}
+                        <tr>
+                            <td class="font-semibold text-ink-900">{{ session.session_id }}</td>
+                            <td>{{ session.display_code|default:"No disponible" }}</td>
+                            <td>{{ session.created_at_parsed|date:"d/m/Y H:i"|default:"No disponible" }}</td>
+                            <td>{{ session.vr_user_email|default:"No disponible" }}</td>
+                            <td class="whitespace-nowrap">
+                                {% if session.has_metrics %}
+                                    {% include "components/badge.html" with tone="success" label="Disponible" %}
+                                {% else %}
+                                    {% include "components/badge.html" with tone="danger" label="No Disponible" %}
+                                {% endif %}
+                            </td>
+                            <td class="whitespace-nowrap">
+                                {% include "components/badge.html" with tone=session.report_status.tone label=session.report_status.label %}
+                            </td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <a href="{% url 'clinical_sessions:session-detail' session.session_id %}" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                                        Ver detalle
+                                    </a>
+                                    {% if session.report_status.code == "GENERATED" and session.report_status.request_id %}
+                                    <a href="{% url 'reports:download' session.report_status.request_id %}" download="informe_{{ session.report_status.request_id }}.pdf" title="El informe se guardara en tu carpeta de Descargas." data-loading="true" data-loading-text="Preparando descarga…" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                                        Descargar informe
+                                    </a>
+                                    {% elif session.report_status.code == "NOT_REQUESTED" or session.report_status.code == "REJECTED" or session.report_status.code == "ERROR" %}
+                                    <form method="post" action="{% url 'reports:create' %}" class="report-request-form" data-title="Solicitar informe" data-message="Se enviará una solicitud de informe para esta sesión al administrador. ¿Deseas continuar?" data-loading-text="Enviando solicitud…">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="session_id" value="{{ session.session_id }}">
+                                        <input type="hidden" name="next" value="{% url 'clinical_sessions:session-detail' session.session_id %}">
+                                        <input type="hidden" name="specialist_observation" id="hidden-specialist-observation-list" value="">
+                                        <button type="submit" class="inline-flex min-h-10 items-center justify-center rounded-xl bg-ink-700 px-3 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                                            {{ session.report_status.action_label }}
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span class="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-mist px-3 py-2 text-sm font-semibold text-slate-600">
+                                        {{ session.report_status.action_label }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% include "components/pagination.html" with page_obj=page_obj %}
+        </div>
+        {% else %}
+            {% include "components/empty_state.html" with title="No hay sesiones en el historial" description="No se encontraron sesiones completadas con los filtros actuales." %}
+        {% endif %}
+    {% endif %}
+</section>
+
+<dialog id="report-confirm-modal" class="nf-modal" aria-labelledby="report-modal-title" aria-describedby="report-modal-message">
+    <div class="max-w-md rounded-panel bg-white p-6 shadow-panel">
+        <h3 id="report-modal-title" class="text-lg font-semibold text-ink-900 mb-2">Solicitar informe</h3>
+        <p id="report-modal-message" class="text-ink-600 mb-6">Se enviará una solicitud de informe para esta sesión al administrador. ¿Deseas continuar?</p>
+        <div class="mb-4">
+            <label for="modal-specialist-observation-list" class="block text-sm font-medium text-ink-900 mb-1">Observación opcional del especialista</label>
+            <textarea id="modal-specialist-observation-list" class="nf-input w-full" rows="3" placeholder="Escribe una observación si lo deseas…"></textarea>
+        </div>
+        <div class="flex justify-end gap-3">
+            <button type="button" id="report-modal-cancel" class="px-4 py-2 rounded-lg border border-border text-ink-700 hover:bg-ink-50">
+                Cancelar
+            </button>
+            <button type="button" id="report-modal-confirm" class="px-4 py-2 rounded-lg bg-ink-700 text-white hover:bg-ink-800">
+                Confirmar
+            </button>
+        </div>
+    </div>
+</dialog>
+{% endblock %}
+
+{% block extra_js %}
+{% load versioned_static %}
+<script src="{% static_versioned 'js/active_sessions.js' %}" defer></script>
+<script>
+(function () {
+  const modal = document.getElementById('report-confirm-modal');
+  const title = document.getElementById('report-modal-title');
+  const message = document.getElementById('report-modal-message');
+  const confirmBtn = document.getElementById('report-modal-confirm');
+  const cancelBtn = document.getElementById('report-modal-cancel');
+  let activeForm = null;
+  let isProcessing = false;
+  const confirmBtnOriginalHtml = confirmBtn.innerHTML;
+  const cancelBtnOriginalHtml = cancelBtn.innerHTML;
+
+  const SPINNER_HTML = '<svg class="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span class="ml-2">Procesando…</span>';
+
+  function resetButtons() {
+    isProcessing = false;
+    confirmBtn.disabled = false;
+    confirmBtn.removeAttribute('aria-busy');
+    confirmBtn.innerHTML = confirmBtnOriginalHtml;
+    cancelBtn.disabled = false;
+    cancelBtn.removeAttribute('aria-busy');
+    cancelBtn.innerHTML = cancelBtnOriginalHtml;
+  }
+
+  function setLoading() {
+    isProcessing = true;
+    confirmBtn.disabled = true;
+    confirmBtn.setAttribute('aria-busy', 'true');
+    confirmBtn.innerHTML = SPINNER_HTML;
+    cancelBtn.disabled = true;
+  }
+
+  function openModal(form) {
+    activeForm = form;
+    resetButtons();
+    title.textContent = form.dataset.title || 'Confirmar acción';
+    message.textContent = form.dataset.message || '¿Estás seguro de que deseas continuar?';
+    modal.showModal();
+  }
+
+  function closeModal() {
+    if (isProcessing) return;
+    modal.close();
+    activeForm = null;
+    resetButtons();
+  }
+
+  document.querySelectorAll('.report-request-form').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      openModal(form);
+    });
+  });
+
+  cancelBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', function (event) {
+    if (event.target === modal) closeModal();
+  });
+  modal.addEventListener('cancel', function (event) {
+    if (isProcessing) event.preventDefault();
+  });
+
+  confirmBtn.addEventListener('click', function () {
+    if (activeForm && !isProcessing) {
+      var observationField = document.getElementById('hidden-specialist-observation-list');
+      var modalTextarea = document.getElementById('modal-specialist-observation-list');
+      if (observationField && modalTextarea) {
+        observationField.value = modalTextarea.value;
+      }
+      setLoading();
+      activeForm.submit();
+    }
+  });
+})();
+</script>
+{% endblock %}

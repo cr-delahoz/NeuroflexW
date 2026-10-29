@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}NeuroFlex{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem("nf-sidebar-collapsed") === "1") {
+                    document.documentElement.classList.add("nf-sidebar-collapsed");
+                }
+            } catch (error) {}
+        })();
+    </script>
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    {% include "updater/update_modal.html" %}
+    {% block content %}{% endblock %}
+    <script src="{% static 'updater/updater.js' %}"></script>
+    <script src="{% static 'js/ui-feedback.js' %}"></script>
+    <script src="{% static 'js/sidebar_toggle.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

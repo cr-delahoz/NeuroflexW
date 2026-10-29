@@ -1,0 +1,7 @@
+{% if tone == "error" %}
+<div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-danger">{{ message }}</div>
+{% elif tone == "success" %}
+<div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-success">{{ message }}</div>
+{% else %}
+<div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-warning">{{ message }}</div>
+{% endif %}

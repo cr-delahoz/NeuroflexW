@@ -1,0 +1,51 @@
+{% extends "layouts/admin_layout.html" %}
+
+{% block title %}Nueva version de terminos | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Nueva version de terminos" subheading="Publica una nueva version; el identificador se genera automaticamente" %}
+{% endblock %}
+
+{% block page_content %}
+<section class="grid gap-6">
+    {% if messages %}
+        {% for message in messages %}
+            {% include "components/alert.html" with tone=message.level_tag message=message %}
+        {% endfor %}
+    {% endif %}
+
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        {% if form.non_field_errors %}
+        <div class="mb-4">
+            {% for error in form.non_field_errors %}
+                {% include "components/alert.html" with tone="error" message=error %}
+            {% endfor %}
+        </div>
+        {% endif %}
+        <form method="post" action="{% url 'terms:terms-create' %}" enctype="multipart/form-data" data-loading-text="Publicando version…">
+            {% csrf_token %}
+            <div class="grid gap-4 sm:grid-cols-2">
+                {% include "components/form_field.html" with field=form.title %}
+                {% include "components/form_field.html" with field=form.language %}
+            </div>
+            <div class="mt-4">
+                {% include "components/form_field.html" with field=form.published %}
+            </div>
+            <div class="mt-4">
+                {% include "components/form_field.html" with field=form.content %}
+            </div>
+            <div class="mt-4">
+                {% include "components/form_field.html" with field=form.content_file %}
+            </div>
+            <div class="mt-6 flex flex-wrap gap-3">
+                <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                    Publicar version
+                </button>
+                <a href="{% url 'terms:terms-list' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50" data-loading="true" data-loading-text="Cargando…">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "layouts/admin_layout.html" %}
+
+{% block title %}Auditoria | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Registros de auditoria" subheading="Consulta y exportacion de eventos relevantes del sistema" %}
+{% endblock %}
+
+{% block page_content %}
+<section class="grid gap-6">
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div class="max-w-3xl">
+                <h3 class="text-xl font-semibold text-ink-900">Filtros de busqueda</h3>
+                <p class="mt-2 text-sm leading-6 text-slate-600">
+                    Refina los resultados por fecha, usuario, accion y resultado. La interfaz muestra solo eventos relevantes y no registra cada solicitud HTTP.
+                </p>
+            </div>
+            <div class="flex flex-col gap-3 sm:flex-row">
+                <a href="{% url 'audit:log-export' %}?{{ request.GET.urlencode }}" data-loading="true" data-loading-text="Exportando CSV…" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50" onclick="return confirm('Se exportaran los registros filtrados actualmente. ¿Deseas continuar?');">
+                    Exportar registros CSV
+                </a>
+                <a href="{% url 'audit:log-export-pdf' %}?{{ request.GET.urlencode }}" data-loading="true" data-loading-text="Exportando PDF…" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50" onclick="return confirm('Se exportaran los registros filtrados actualmente en un PDF legible. ¿Deseas continuar?');">
+                    Exportar registros PDF
+                </a>
+            </div>
+        </div>
+
+        <form method="get" class="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-5" data-loading-text="Aplicando filtros…">
+            {% include "components/form_field.html" with field=form.start_date %}
+            {% include "components/form_field.html" with field=form.end_date %}
+            {% include "components/form_field.html" with field=form.actor %}
+            {% include "components/form_field.html" with field=form.action %}
+            {% include "components/form_field.html" with field=form.result %}
+            <div class="md:col-span-2 xl:col-span-5 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:justify-between">
+                <a href="{% url 'audit:log-list' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                    Limpiar filtros
+                </a>
+                <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                    Aplicar filtros
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if logs %}
+    <div class="rounded-panel border border-border bg-white shadow-panel">
+        <div class="border-b border-border px-5 py-4 sm:px-6">
+            <p class="text-sm text-slate-600">Resultados encontrados: <span class="font-semibold text-ink-900">{{ logs|length }}</span></p>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="nf-table nf-table-xs">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Usuario</th>
+                        <th>Accion</th>
+                        <th>Recurso</th>
+                        <th>Resultado</th>
+                        <th>IP</th>
+                        <th>Metadata</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>{% if log.actor %}{{ log.actor.username }}{% else %}Sistema{% endif %}</td>
+                        <td class="font-medium text-ink-900">{{ log.action }}</td>
+                        <td>{{ log.resource_type }}{% if log.resource_id %} / {{ log.resource_id }}{% endif %}</td>
+                        <td>
+                            {% if log.result == "SUCCESS" %}
+                                {% include "components/badge.html" with tone="success" label="Correcto" %}
+                            {% else %}
+                                {% include "components/badge.html" with tone="danger" label="Error" %}
+                            {% endif %}
+                        </td>
+                        <td>{{ log.ip_address|default:"No disponible" }}</td>
+                        <td><code class="text-xs text-slate-600">{{ log.metadata }}</code></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+        {% include "components/empty_state.html" with title="No hay registros para los filtros actuales" description="Ajusta el rango de fechas o elimina filtros para encontrar actividad relevante del sistema." %}
+    {% endif %}
+</section>
+{% endblock %}

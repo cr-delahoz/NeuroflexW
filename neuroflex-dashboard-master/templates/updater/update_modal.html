@@ -1,0 +1,28 @@
+{% load static %}
+<div id="nf-update-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+  <div class="bg-white rounded-panel shadow-panel max-w-md w-full mx-4 p-6">
+    <h2 class="text-lg font-semibold text-ink-800 mb-2">
+      Nueva versión disponible: <span id="nf-update-version"></span>
+    </h2>
+    <div class="mb-4 text-sm text-ink-500">
+      <p class="mb-1">Cambios en esta versión:</p>
+      <div id="nf-update-changelog" class="whitespace-pre-wrap text-ink-700 bg-ink-50 rounded-panel p-3"></div>
+    </div>
+    <div id="nf-update-progress" class="hidden mb-4">
+      <progress id="nf-update-progress-bar"
+                class="w-full h-2 rounded-full [&::-webkit-progress-bar]:bg-ink-100 [&::-webkit-progress-value]:bg-ink-700 [&::-moz-progress-bar]:bg-ink-700"
+                max="100"></progress>
+      <p id="nf-update-status" class="mt-2 text-sm text-ink-600" aria-live="polite"></p>
+    </div>
+    <div class="flex gap-3 justify-end">
+      <button id="nf-update-later"
+              class="px-4 py-2 rounded-lg border border-border text-ink-700 hover:bg-ink-50 transition-colors">
+        Más tarde
+      </button>
+      <button id="nf-update-apply"
+              class="px-4 py-2 rounded-lg bg-ink-700 text-white hover:bg-ink-800 transition-colors">
+        Actualizar
+      </button>
+    </div>
+  </div>
+</div>

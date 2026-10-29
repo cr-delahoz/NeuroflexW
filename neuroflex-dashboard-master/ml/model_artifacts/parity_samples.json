@@ -1,0 +1,332 @@
+[
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 2.7196,
+      "TiempoRespuestaPregunta1": 1.9733,
+      "TiempoRespuestaPregunta2": 4.2354,
+      "TiempoRespuestaPregunta3": 5.2198,
+      "TiempoReaccionVisual": 0.337,
+      "TiempoCapturarNumero": 1.5899
+    },
+    "probability": 0.07144809514284134
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 2.5824,
+      "TiempoRespuestaPregunta1": 2.6859,
+      "TiempoRespuestaPregunta2": 3.4751,
+      "TiempoRespuestaPregunta3": 3.0097,
+      "TiempoReaccionVisual": 1.0225,
+      "TiempoCapturarNumero": 3.0292
+    },
+    "probability": 0.9175916910171509
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 2.5344,
+      "TiempoRespuestaPregunta1": 4.1072,
+      "TiempoRespuestaPregunta2": 3.955,
+      "TiempoRespuestaPregunta3": 3.002,
+      "TiempoReaccionVisual": 0.8988,
+      "TiempoCapturarNumero": 1.8275
+    },
+    "probability": 0.7163796424865723
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 3.1647,
+      "TiempoRespuestaPregunta1": 2.9481,
+      "TiempoRespuestaPregunta2": 3.3085,
+      "TiempoRespuestaPregunta3": 3.2218,
+      "TiempoReaccionVisual": 1.1056,
+      "TiempoCapturarNumero": 2.3841
+    },
+    "probability": 0.9319964647293091
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 2.1509,
+      "TiempoRespuestaPregunta1": 2.6506,
+      "TiempoRespuestaPregunta2": 4.0192,
+      "TiempoRespuestaPregunta3": 4.5111,
+      "TiempoReaccionVisual": 0.9095,
+      "TiempoCapturarNumero": 2.7891
+    },
+    "probability": 0.6416003704071045
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 4.1447,
+      "TiempoRespuestaPregunta1": 2.5971,
+      "TiempoRespuestaPregunta2": 2.9841,
+      "TiempoRespuestaPregunta3": 3.0581,
+      "TiempoReaccionVisual": 0.9587,
+      "TiempoCapturarNumero": 3.2722
+    },
+    "probability": 0.889508068561554
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 2.3948,
+      "TiempoRespuestaPregunta1": 2.1701,
+      "TiempoRespuestaPregunta2": 2.6746,
+      "TiempoRespuestaPregunta3": 4.8625,
+      "TiempoReaccionVisual": 0.9895,
+      "TiempoCapturarNumero": 2.8669
+    },
+    "probability": 0.500250518321991
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 1.9669,
+      "TiempoRespuestaPregunta1": 3.2259,
+      "TiempoRespuestaPregunta2": 3.6073,
+      "TiempoRespuestaPregunta3": 4.3303,
+      "TiempoReaccionVisual": 1.0206,
+      "TiempoCapturarNumero": 2.6457
+    },
+    "probability": 0.8638473749160767
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 3.0099,
+      "TiempoRespuestaPregunta1": 3.0638,
+      "TiempoRespuestaPregunta2": 3.7782,
+      "TiempoRespuestaPregunta3": 4.8387,
+      "TiempoReaccionVisual": 0.4566,
+      "TiempoCapturarNumero": 2.2698
+    },
+    "probability": 0.720507800579071
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 2.1183,
+      "TiempoRespuestaPregunta1": 2.3683,
+      "TiempoRespuestaPregunta2": 3.219,
+      "TiempoRespuestaPregunta3": 5.9029,
+      "TiempoReaccionVisual": 0.5998,
+      "TiempoCapturarNumero": 3.161
+    },
+    "probability": 0.5572942495346069
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 1.1776,
+      "TiempoRespuestaPregunta1": 2.6676,
+      "TiempoRespuestaPregunta2": 3.653,
+      "TiempoRespuestaPregunta3": 4.7831,
+      "TiempoReaccionVisual": 0.9818,
+      "TiempoCapturarNumero": 3.04
+    },
+    "probability": 0.6095367670059204
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 2.2127,
+      "TiempoRespuestaPregunta1": 2.5421,
+      "TiempoRespuestaPregunta2": 4.342,
+      "TiempoRespuestaPregunta3": 3.8251,
+      "TiempoReaccionVisual": 0.5005,
+      "TiempoCapturarNumero": 1.7068
+    },
+    "probability": 0.11139753460884094
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 1.7699,
+      "TiempoRespuestaPregunta1": 3.4868,
+      "TiempoRespuestaPregunta2": 3.6328,
+      "TiempoRespuestaPregunta3": 4.9116,
+      "TiempoReaccionVisual": 0.706,
+      "TiempoCapturarNumero": 2.6007
+    },
+    "probability": 0.5837211608886719
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 2.9685,
+      "TiempoRespuestaPregunta1": 2.6927,
+      "TiempoRespuestaPregunta2": 3.9444,
+      "TiempoRespuestaPregunta3": 3.2452,
+      "TiempoReaccionVisual": 0.7216,
+      "TiempoCapturarNumero": 2.2268
+    },
+    "probability": 0.5010421872138977
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 1.5555,
+      "TiempoRespuestaPregunta1": 3.4768,
+      "TiempoRespuestaPregunta2": 3.0265,
+      "TiempoRespuestaPregunta3": 4.0762,
+      "TiempoReaccionVisual": 0.9259,
+      "TiempoCapturarNumero": 2.8
+    },
+    "probability": 0.716694712638855
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 2.9994,
+      "TiempoRespuestaPregunta1": 2.9003,
+      "TiempoRespuestaPregunta2": 3.0722,
+      "TiempoRespuestaPregunta3": 3.9626,
+      "TiempoReaccionVisual": 0.4008,
+      "TiempoCapturarNumero": 1.4896
+    },
+    "probability": 0.16702888906002045
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 1.457,
+      "TiempoRespuestaPregunta1": 2.0154,
+      "TiempoRespuestaPregunta2": 3.8879,
+      "TiempoRespuestaPregunta3": 2.9451,
+      "TiempoReaccionVisual": 0.7179,
+      "TiempoCapturarNumero": 3.3901
+    },
+    "probability": 0.16991165280342102
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 2.2068,
+      "TiempoRespuestaPregunta1": 3.7235,
+      "TiempoRespuestaPregunta2": 2.5665,
+      "TiempoRespuestaPregunta3": 3.8077,
+      "TiempoReaccionVisual": 0.5794,
+      "TiempoCapturarNumero": 2.2564
+    },
+    "probability": 0.1927850991487503
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 3.1351,
+      "TiempoRespuestaPregunta1": 1.2966,
+      "TiempoRespuestaPregunta2": 3.9222,
+      "TiempoRespuestaPregunta3": 4.3537,
+      "TiempoReaccionVisual": 0.6656,
+      "TiempoCapturarNumero": 1.4903
+    },
+    "probability": 0.08963922411203384
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 2.5392,
+      "TiempoRespuestaPregunta1": 2.476,
+      "TiempoRespuestaPregunta2": 3.7223,
+      "TiempoRespuestaPregunta3": 4.0877,
+      "TiempoReaccionVisual": 1.1975,
+      "TiempoCapturarNumero": 2.3254
+    },
+    "probability": 0.8359152674674988
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 1.6892,
+      "TiempoRespuestaPregunta1": 3.1738,
+      "TiempoRespuestaPregunta2": 3.7097,
+      "TiempoRespuestaPregunta3": 5.7356,
+      "TiempoReaccionVisual": 1.0118,
+      "TiempoCapturarNumero": 2.738
+    },
+    "probability": 0.8167888522148132
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 3.6184,
+      "TiempoRespuestaPregunta1": 1.8268,
+      "TiempoRespuestaPregunta2": 2.8577,
+      "TiempoRespuestaPregunta3": 2.9191,
+      "TiempoReaccionVisual": 0.7151,
+      "TiempoCapturarNumero": 1.5383
+    },
+    "probability": 0.09873791038990021
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 2.976,
+      "TiempoRespuestaPregunta1": 2.7785,
+      "TiempoRespuestaPregunta2": 2.0341,
+      "TiempoRespuestaPregunta3": 2.8094,
+      "TiempoReaccionVisual": 0.8854,
+      "TiempoCapturarNumero": 3.071
+    },
+    "probability": 0.49650299549102783
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 4.0323,
+      "TiempoRespuestaPregunta1": 5.8663,
+      "TiempoRespuestaPregunta2": 3.9024,
+      "TiempoRespuestaPregunta3": 2.8415,
+      "TiempoReaccionVisual": 0.2931,
+      "TiempoCapturarNumero": 2.6763
+    },
+    "probability": 0.4849351942539215
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 1.8525,
+      "TiempoRespuestaPregunta1": 2.5883,
+      "TiempoRespuestaPregunta2": 2.8851,
+      "TiempoRespuestaPregunta3": 3.8873,
+      "TiempoReaccionVisual": 1.0677,
+      "TiempoCapturarNumero": 2.5997
+    },
+    "probability": 0.5157384872436523
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 2.3601,
+      "TiempoRespuestaPregunta1": 1.9776,
+      "TiempoRespuestaPregunta2": 1.8321,
+      "TiempoRespuestaPregunta3": 3.4616,
+      "TiempoReaccionVisual": 0.7965,
+      "TiempoCapturarNumero": 3.7144
+    },
+    "probability": 0.13050433993339539
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 2.5843,
+      "TiempoRespuestaPregunta1": 3.9649,
+      "TiempoRespuestaPregunta2": 2.9969,
+      "TiempoRespuestaPregunta3": 2.6007,
+      "TiempoReaccionVisual": 0.5757,
+      "TiempoCapturarNumero": 1.9891
+    },
+    "probability": 0.10174573957920074
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 4.1345,
+      "TiempoRespuestaPregunta1": 2.1886,
+      "TiempoRespuestaPregunta2": 4.3226,
+      "TiempoRespuestaPregunta3": 2.9482,
+      "TiempoReaccionVisual": 1.0351,
+      "TiempoCapturarNumero": 2.7574
+    },
+    "probability": 0.7363116145133972
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 2.3617,
+      "TiempoRespuestaPregunta1": 2.9572,
+      "TiempoRespuestaPregunta2": 2.8428,
+      "TiempoRespuestaPregunta3": 4.6105,
+      "TiempoReaccionVisual": 0.6993,
+      "TiempoCapturarNumero": 1.6429
+    },
+    "probability": 0.12177223712205887
+  },
+  {
+    "raw_input": {
+      "TiempoRespuestaPararse": 1.4918,
+      "TiempoRespuestaPregunta1": 3.1672,
+      "TiempoRespuestaPregunta2": 5.0566,
+      "TiempoRespuestaPregunta3": 4.2579,
+      "TiempoReaccionVisual": 0.7808,
+      "TiempoCapturarNumero": 2.6888
+    },
+    "probability": 0.586712121963501
+  }
+]

@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Acceso | NeuroFlex{% endblock %}
+
+{% block body_class %}bg-mist{% endblock %}
+
+{% block content %}
+<main class="nf-auth-shell">
+    <div class="nf-auth-frame">
+        <section class="nf-auth-brand lg:flex lg:items-center lg:justify-center">
+            <div class="relative z-10 mx-auto flex h-full w-full max-w-[420px] flex-col items-center justify-center text-center">
+                <img
+                    src="{% static 'images/brand/logo-neuroflex-white.png' %}"
+                    alt="NeuroFlex VR"
+                    class="h-auto w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[360px]"
+                >
+                <p class="mt-7 max-w-[24rem] text-base leading-7 text-ink-100">
+                    Plataforma de apoyo para la evaluación y seguimiento cognitivo mediante realidad virtual.
+                </p>
+            </div>
+        </section>
+        <section class="nf-auth-form">
+            <div class="mx-auto w-full max-w-md">
+                <div class="mb-8 flex items-start justify-between gap-4">
+                    <div>
+                        <p class="nf-kicker">Acceso seguro</p>
+                        <h2 class="mt-3 text-3xl font-semibold text-ink-900 sm:text-[2.15rem]">
+                        {% if form.new_password_required or form.challenge_data %}Definir nueva contraseña{% else %}Iniciar sesión{% endif %}
+                        </h2>
+                        <p id="login-description" class="mt-3 text-base leading-7 text-slate-600 sm:text-[1.05rem]">
+                        {% if form.new_password_required or form.challenge_data %}
+                            Define una nueva contraseña para continuar.
+                        {% else %}
+                            Ingresa con tus credenciales para acceder a las herramientas administrativas o clínicas autorizadas para tu perfil.
+                        {% endif %}
+                        </p>
+                    </div>
+                    <div class="flex shrink-0 items-center gap-1">
+                        <form method="post" action="{% url 'accounts:force-mode' %}" novalidate>
+                            {% csrf_token %}
+                            <input type="hidden" name="mode" value="{% if offline_mode %}online{% else %}offline{% endif %}">
+                            <button
+                                type="submit"
+                                class="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-ink-700 transition hover:bg-ink-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink-700"
+                                data-loading-text="{% if offline_mode %}Verificando conexión…{% else %}Cambiando a modo sin conexión…{% endif %}"
+                                title="{% if offline_mode %}Verificar conexión y volver al modo en línea{% else %}Forzar modo sin conexión{% endif %}"
+                                aria-label="{% if offline_mode %}Verificar conexión y volver al modo en línea{% else %}Forzar modo sin conexión{% endif %}"
+                            >
+                                {% if offline_mode %}
+                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.348 14.652a3.75 3.75 0 0 1 0-5.304m5.304 0a3.75 3.75 0 0 1 0 5.304m-7.425 2.121a6.75 6.75 0 0 1 0-9.546m9.546 0a6.75 6.75 0 0 1 0 9.546M5.106 18.894c-3.808-3.807-3.808-9.98 0-13.788m13.788 0c3.808 3.807 3.808 9.98 0 13.788M12 12h.008v.008H12V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/>
+                                </svg>
+                                {% else %}
+                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m3 3 8.735 8.735m0 0a.374.374 0 1 1 .53.53m-.53-.53.53.53m0 0L21 21M14.652 9.348a3.75 3.75 0 0 1 0 5.304m2.121-7.425a6.75 6.75 0 0 1 0 9.546m2.121-11.667c3.808 3.807 3.808 9.98 0 13.788m-9.546-4.242a3.733 3.733 0 0 1-1.06-2.122m-1.061 4.243a6.75 6.75 0 0 1-1.625-6.929m-.496 9.05c-3.068-3.067-3.664-7.67-1.79-11.334M12 12h.008v.008H12V12Z"/>
+                                </svg>
+                                {% endif %}
+                            </button>
+                        </form>
+                        <button type="button" id="local-config-open" class="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-ink-700 transition hover:bg-ink-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink-700" title="Configuración avanzada" aria-label="Configuración avanzada" aria-haspopup="dialog" aria-controls="local-config-modal">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543-.94-3.31.826-2.37 2.37a1.724 1.724 0 00-1.065-2.572c-1.756.426-1.756 2.924 0 3.35a1.724 1.724 0 001.066-2.573c-.94-1.543-.826-3.31-2.37-2.37a1.724 1.724 0 002.572-1.065z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                {% if messages %}
+                {% for message in messages %}
+                <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-6 text-success" role="status">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% if offline_mode %}
+                <div class="bg-blue-50 border border-blue-200 text-blue-800 rounded p-3 mb-4">
+                    Modo sin conexión — solo especialistas. Las funciones disponibles son limitadas.
+                </div>
+                {% endif %}
+                {% if form.non_field_errors %}
+                <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm leading-6 text-danger" role="alert" aria-live="assertive">
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                </div>
+                {% elif form.errors %}
+                <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm leading-6 text-danger" role="alert" aria-live="assertive">
+                    El usuario o la contraseña no son correctos.
+                </div>
+                {% endif %}
+                <form method="post" class="space-y-6" novalidate data-loading-text="{% if form.new_password_required or form.challenge_data %}Actualizando contraseña…{% else %}Iniciando sesión…{% endif %}">
+                    {% csrf_token %}
+                    {% if form.new_password_required or form.challenge_data %}
+                        <input type="hidden" name="{{ form.username.html_name }}" value="{% if form.username.value %}{{ form.username.value }}{% elif form.challenge_data %}{{ form.challenge_data.username }}{% endif %}">
+                        {% include "components/form_field.html" with field=form.new_password1 %}
+                        {% include "components/form_field.html" with field=form.new_password2 %}
+                    {% else %}
+                        <div>
+                            <label for="{{ form.username.id_for_label }}" class="nf-label">Usuario</label>
+                            <input
+                                type="text"
+                                name="{{ form.username.html_name }}"
+                                id="{{ form.username.id_for_label }}"
+                                value="{{ form.username.value|default_if_none:'' }}"
+                                autocomplete="username"
+                                class="nf-input min-h-12 text-base"
+                                aria-describedby="login-description"
+                            >
+                        </div>
+                        <div>
+                            <div class="mb-2 flex items-center justify-between gap-3">
+                                <label for="{{ form.password.id_for_label }}" class="nf-label mb-0">Contraseña</label>
+                                <button
+                                    type="button"
+                                    id="toggle-password"
+                                    class="rounded-lg px-2 py-1 text-sm font-semibold text-ink-700 underline-offset-4 transition hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink-700"
+                                    aria-controls="{{ form.password.id_for_label }}"
+                                    aria-pressed="false"
+                                >
+                                    Mostrar contraseña
+                                </button>
+                            </div>
+                            <input
+                                type="password"
+                                name="{{ form.password.html_name }}"
+                                id="{{ form.password.id_for_label }}"
+                                autocomplete="current-password"
+                                class="nf-input min-h-12 text-base"
+                                aria-describedby="password-help"
+                            >
+                            <p id="password-help" class="nf-helper mt-2 text-sm leading-6 text-slate-600">
+                                Ingresa con la cuenta asignada por el administrador.
+                            </p>
+                        </div>
+                    {% endif %}
+                    <button type="submit" class="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-ink-700 px-5 py-3 text-base font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-ink-800 hover:shadow-panel">
+                        {% if form.new_password_required or form.challenge_data %}Actualizar contraseña{% else %}Entrar a la plataforma{% endif %}
+                    </button>
+                    <p class="text-center text-sm leading-6 text-slate-500">
+                        Acceso exclusivo para usuarios autorizados.
+                    </p>
+                    <p class="text-center text-sm leading-6 text-slate-500">
+                        <a href="{% url 'accounts:reset-password-request' %}" class="font-semibold text-ink-700 hover:underline">¿Olvidaste tu contrasena? Restablecer contrasena</a>
+                    </p>
+                </form>
+                <p class="mt-8 text-center text-xs leading-6 text-slate-400">
+                    NeuroFlex Dashboard v{{ dashboard_version }}
+                </p>
+            </div>
+            {% include "accounts/local_config_modal.html" %}
+        </section>
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const toggleButton = document.getElementById("toggle-password");
+    const passwordField = document.getElementById("{{ form.password.id_for_label }}");
+
+    if (toggleButton && passwordField) {
+        toggleButton.addEventListener("click", () => {
+            const isHidden = passwordField.type === "password";
+            passwordField.type = isHidden ? "text" : "password";
+            toggleButton.textContent = isHidden ? "Ocultar contraseña" : "Mostrar contraseña";
+            toggleButton.setAttribute("aria-pressed", isHidden ? "true" : "false");
+        });
+    }
+</script>
+<script src="{% static 'js/local_config.js' %}"></script>
+{% endblock %}

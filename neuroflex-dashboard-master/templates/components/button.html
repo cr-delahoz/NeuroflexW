@@ -1,0 +1,9 @@
+{% if href %}
+<a href="{{ href }}" class="inline-flex min-h-11 items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold {{ classes|default:'bg-ink-700 text-white hover:bg-ink-800' }}"{% if loading %} data-loading="true" aria-busy="true"{% endif %}>
+    {% if loading %}{% include "components/loading_spinner.html" with size="sm" %}<span class="ml-2">{{ label }}</span>{% else %}{{ label }}{% endif %}
+</a>
+{% else %}
+<button type="{{ type|default:'button' }}" class="inline-flex min-h-11 items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold {{ classes|default:'bg-ink-700 text-white hover:bg-ink-800' }}"{% if loading %} disabled aria-busy="true"{% endif %}>
+    {% if loading %}{% include "components/loading_spinner.html" with size="sm" %}<span class="ml-2">{{ label }}</span>{% else %}{{ label }}{% endif %}
+</button>
+{% endif %}

@@ -1,0 +1,2 @@
+Archivo: modelo_neuroflex.keras
+MD5: 3b77a6f644593836b2eecd804d9ed06c

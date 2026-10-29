@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block body_class %}bg-mist{% endblock %}
+
+{% block content %}
+<div class="nf-shell">
+    {% include "components/sidebar.html" with role_label="Administrador" sidebar_variant="admin" %}
+    <div class="min-w-0">
+        {% include "offline_mode/partials/sync_banner.html" %}
+        {% block navbar %}
+            {% include "components/navbar.html" with heading="Panel administrativo" subheading="Gestion segura y ordenada" %}
+        {% endblock %}
+        <main class="px-4 pb-10 pt-7 sm:px-6 lg:px-10">
+            {% block page_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}

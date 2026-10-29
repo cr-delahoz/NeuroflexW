@@ -1,0 +1,44 @@
+{
+  "nombre_modelo": "NeuroFlex - Clasificador de banda de desempeño (3 clases)",
+  "version": "1.0.0",
+  "framework": "scikit-learn exportado a ONNX",
+  "tipo_modelo": "SVC multiclase con preprocesamiento integrado",
+  "variable_objetivo": "Banda derivada de Precision",
+  "clases": {
+    "0": "bajo",
+    "1": "medio",
+    "2": "alto"
+  },
+  "columnas_entrada": [
+    "dominant_hand",
+    "TiempoRespuestaPararse",
+    "TiempoActivoTarea",
+    "CantAciertasTotales",
+    "ObjetosInteractuadosCorrectamente",
+    "TiempoRespuestaPregunta1",
+    "TiempoRespuestaPregunta2",
+    "TiempoRespuestaPregunta3",
+    "TiempoCapturarNumero",
+    "TiempoTutorial",
+    "TipoEscena",
+    "tiempo_total",
+    "ratio_aciertos",
+    "TiempoRespuestaPararse_log",
+    "TiempoActivoTarea_log",
+    "TiempoTutorial_log",
+    "TiempoRespuestaPregunta1_log",
+    "TiempoRespuestaPregunta2_log",
+    "TiempoRespuestaPregunta3_log"
+  ],
+  "regla_clases": {
+    "bajo": "Precision < 35",
+    "medio": "35 <= Precision < 60",
+    "alto": "Precision >= 60"
+  },
+  "metricas_test": {
+    "accuracy": 0.555,
+    "f1_weighted": 0.4943,
+    "recall_medio": 0.0
+  },
+  "advertencia": "Modelo experimental sin validacion clinica. En la prueba guardada no identifico ejemplos de la clase medio. No es un diagnostico."
+}

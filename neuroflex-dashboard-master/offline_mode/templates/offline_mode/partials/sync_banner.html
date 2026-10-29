@@ -1,0 +1,8 @@
+{% if offline_sync_banner and not request.session.offline_mode %}
+  {% if offline_sync_banner.is_online and offline_sync_banner.pending_count > 0 %}
+  <div class="bg-teal-50 border border-teal-300 text-teal-900 rounded p-3 mb-4 flex justify-between items-center">
+    <span>Conexión disponible — <strong>{{ offline_sync_banner.pending_count }}</strong> sesión(es) pendientes de sincronizar.</span>
+    <a href="{% url 'offline_mode:panel' %}" class="bg-teal-700 text-white rounded px-3 py-1 text-sm">Ir a panel de control</a>
+  </div>
+  {% endif %}
+{% endif %}

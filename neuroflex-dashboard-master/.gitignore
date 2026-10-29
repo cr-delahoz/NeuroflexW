@@ -1,0 +1,35 @@
+.claude/
+venv/
+.venv/
+__pycache__/
+*.pyc
+db.sqlite3
+.env
+*.sqlite3
+*.log
+.pytest_cache/
+staticfiles/
+node_modules/
+clinical_sessions/data/local_sessions/*
+!clinical_sessions/data/local_sessions/.gitkeep
+ml/mlj/
+ml/mlp/
+media/
+!media/.gitkeep
+build/
+dist/
+dist_build_err.txt
+dist_build_output.txt
+installer/upload-to-release/
+docs/superpowers/
+.superpowers/
+.worktrees/
+
+# Quest simulator state
+.quest_sim_state.json
+installer/NeuroFlex-Setup-*.exe
+.superpowers/
+
+# Local verification and generated artifacts
+output/
+tmp/

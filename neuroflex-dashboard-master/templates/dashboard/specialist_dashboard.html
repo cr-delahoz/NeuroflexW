@@ -1,0 +1,68 @@
+{% extends "layouts/specialist_layout.html" %}
+
+{% block title %}Dashboard del Especialista | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Dashboard de especialista" subheading="Acciones disponibles mientras se integra la API clinica" %}
+{% endblock %}
+
+{% block page_content %}
+<section class="grid gap-6">
+    <div class="grid gap-6">
+        <section class="nf-page-hero">
+            <div class="relative z-10">
+            <p class="text-xs font-bold uppercase tracking-[0.24em] text-ink-100">Espacio de trabajo</p>
+            <h3 class="mt-3 text-3xl font-semibold sm:text-4xl">Tu jornada clinica, en un solo lugar</h3>
+            <p class="mt-3 max-w-2xl text-base leading-7 text-ink-100">Accede a las tareas habituales de seguimiento clinico de forma simple y ordenada.</p>
+            <div class="mt-5 text-sm font-semibold text-white hover:text-ink-100">
+                <a href="{% url 'accounts:specialist-profile' %}">Ver mi perfil</a>
+            </div>
+            <div class="mt-8 grid gap-4 md:grid-cols-2">
+                <article class="nf-action-card nf-action-card--primary">
+                    <h4 class="text-base font-semibold text-ink-900">Asociar una nueva sesion</h4>
+                    <p class="mt-2 text-sm leading-6 text-slate-600">
+                        Ingresa el codigo mostrado en las gafas VR para asociar la sesion a tu cuenta.
+                    </p>
+                    <div class="mt-4">
+                        <a href="{% url 'clinical_sessions:session-confirm' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-ink-800">
+                            Ingresar codigo
+                        </a>
+                    </div>
+                </article>
+
+                <article class="nf-action-card">
+                    <h4 class="text-base font-semibold text-ink-900">Consultar sesiones registradas</h4>
+                    <p class="mt-2 text-sm leading-6 text-slate-600">
+                        Accede al listado temporal de sesiones locales cargadas mientras se completa la integracion definitiva.
+                    </p>
+                    <div class="mt-4">
+                        <a href="{% url 'clinical_sessions:session-list' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 transition-colors duration-200 hover:bg-ink-50">
+                            Ver sesiones registradas
+                        </a>
+                    </div>
+                </article>
+
+                <article class="nf-action-card">
+                    <h4 class="text-base font-semibold text-ink-900">Revisar estado de solicitudes</h4>
+                    <p class="mt-2 text-sm leading-6 text-slate-600">
+                        Consulta si tus solicitudes estan pendientes, rechazadas o listas para descargar.
+                    </p>
+                    <div class="mt-4">
+                        <a href="{% url 'reports:specialist-list' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 transition-colors duration-200 hover:bg-ink-50">
+                            Ver mis solicitudes
+                        </a>
+                    </div>
+                </article>
+
+                <article class="nf-action-card">
+                    <h4 class="text-base font-semibold text-ink-900">Descargar informes generados</h4>
+                    <p class="mt-2 text-sm leading-6 text-slate-600">
+                        Cuando una solicitud cambie a estado generado, podras descargar el archivo PDF desde tu listado.
+                    </p>
+                </article>
+            </div>
+            </div>
+        </section>
+    </div>
+</section>
+{% endblock %}

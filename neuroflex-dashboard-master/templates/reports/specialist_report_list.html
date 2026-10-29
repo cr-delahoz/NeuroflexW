@@ -1,0 +1,81 @@
+{% extends "layouts/specialist_layout.html" %}
+
+{% block title %}Mis Solicitudes | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Mis solicitudes de informes" subheading="Seguimiento simple del estado de tus solicitudes" %}
+{% endblock %}
+
+{% block page_content %}
+<section class="grid gap-6">
+    <div class="flex flex-col gap-4 rounded-panel border border-border bg-white p-5 shadow-panel sm:flex-row sm:items-start sm:justify-between sm:p-6">
+        <div class="max-w-3xl">
+            <h3 class="text-xl font-semibold text-ink-900">Solicitudes registradas</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-600">
+                Consulta el estado de cada solicitud y descarga el informe solo cuando el sistema lo marque como generado.
+            </p>
+        </div>
+        <a href="{% url 'clinical_sessions:session-list' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+            Ver sesiones registradas
+        </a>
+    </div>
+
+    {% if reports %}
+    <div class="rounded-panel border border-border bg-white shadow-panel">
+        <div class="overflow-x-auto">
+            <table class="nf-table">
+                <thead>
+                    <tr>
+                        <th>Sesion</th>
+                        <th>Estado</th>
+                        <th>Solicitada</th>
+                        <th>Motivo de rechazo</th>
+                        <th>Observacion del especialista</th>
+                        <th>Accion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr>
+                        <td class="font-semibold text-ink-900">{{ report.session_id }}</td>
+                        <td>
+                            {% if report.status == "PENDING" %}
+                                {% include "components/badge.html" with tone="warning" label="Pendiente" %}
+                            {% elif report.status == "GENERATED" %}
+                                {% include "components/badge.html" with tone="success" label="Generado" %}
+                            {% elif report.status == "REJECTED" %}
+                                {% include "components/badge.html" with tone="danger" label="Rechazado" %}
+                            {% elif report.status == "ERROR" %}
+                                {% include "components/badge.html" with tone="danger" label="Error" %}
+                            {% else %}
+                                {% include "components/badge.html" with tone="default" label=report.status %}
+                            {% endif %}
+                        </td>
+                        <td>{{ report.requested_at|date:"d/m/Y H:i" }}</td>
+                        <td>{{ report.rejection_reason|default:"Sin observaciones" }}</td>
+                        <td>{{ report.specialist_observation|default:"Sin observaciones" }}</td>
+                        <td>
+                            {% if report.status == "GENERATED" %}
+                            <a href="{% url 'reports:download' report.id %}" download="informe_{{ report.id }}.pdf" title="El informe se guardara en tu carpeta de Descargas." data-loading="true" data-loading-text="Preparando descarga…" class="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                                Descargar informe
+                            </a>
+                            {% else %}
+                            <span class="text-sm text-slate-500">Aun no disponible</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+        {% include "components/empty_state.html" with title="Todavia no has solicitado informes" description="Revisa las sesiones registradas y solicita el informe directamente desde la sesion que corresponda." %}
+        <div>
+            <a href="{% url 'clinical_sessions:session-list' %}" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                Ir a sesiones registradas
+            </a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

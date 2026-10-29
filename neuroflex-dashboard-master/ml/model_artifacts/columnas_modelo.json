@@ -1,0 +1,14 @@
+[
+    "TiempoRespuestaPararse",
+    "TiempoRespuestaPregunta1",
+    "TiempoRespuestaPregunta2",
+    "TiempoRespuestaPregunta3",
+    "TiempoReaccionVisual",
+    "TiempoCapturarNumero",
+    "TiempoRespuestaPararse_sobre_3s",
+    "TiempoRespuestaPregunta1_sobre_3s",
+    "TiempoRespuestaPregunta2_sobre_3s",
+    "TiempoRespuestaPregunta3_sobre_3s",
+    "TiempoReaccionVisual_sobre_3s",
+    "TiempoCapturarNumero_sobre_3s"
+]

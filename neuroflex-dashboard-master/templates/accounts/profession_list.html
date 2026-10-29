@@ -1,0 +1,112 @@
+{% extends "layouts/admin_layout.html" %}
+
+{% block title %}Profesiones | NeuroFlex{% endblock %}
+
+{% block navbar %}
+    {% include "components/navbar.html" with heading="Profesiones" subheading="Catalogo de profesiones para identificar a los especialistas" %}
+{% endblock %}
+
+{% block page_content %}
+<section class="grid gap-6">
+    {% if messages %}
+        {% for message in messages %}
+            {% include "components/alert.html" with tone="success" message=message %}
+        {% endfor %}
+    {% endif %}
+
+    <div class="rounded-panel border border-border bg-white p-5 shadow-panel sm:p-6">
+        <h3 class="text-xl font-semibold text-ink-900">Agregar profesion</h3>
+        <p class="mt-2 text-sm leading-6 text-slate-600">
+            Las profesiones permiten identificar con precision a cada profesional (por ejemplo: kinesiologo, psicologo, psiquiatra o neurologo). No modifican permisos.
+        </p>
+        {% if form.non_field_errors %}
+        <div class="mt-4">
+            {% for error in form.non_field_errors %}
+                {% include "components/alert.html" with tone="error" message=error %}
+            {% endfor %}
+        </div>
+        {% endif %}
+        <form method="post" action="{% url 'accounts:profession-create' %}" class="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end" data-loading-text="Creando profesion…">
+            {% csrf_token %}
+            <div class="flex-1">
+                {% include "components/form_field.html" with field=form.name %}
+            </div>
+            <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ink-700 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800">
+                Agregar profesion
+            </button>
+        </form>
+    </div>
+
+    {% if professions %}
+    <div class="rounded-panel border border-border bg-white shadow-panel">
+        <div class="border-b border-border px-5 py-4 sm:px-6">
+            <p class="text-sm text-slate-600">Profesiones registradas: <span class="font-semibold text-ink-900">{{ professions|length }}</span></p>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="nf-table">
+                <thead>
+                    <tr>
+                        <th>Profesion</th>
+                        <th>Estado</th>
+                        <th>Profesionales asignados</th>
+                        <th class="min-w-[120px]">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for profession in professions %}
+                    <tr>
+                        <td class="font-semibold text-ink-900">{{ profession.name }}</td>
+                        <td>
+                            {% if profession.is_active %}
+                                {% include "components/badge.html" with tone="success" label="Activa" %}
+                            {% else %}
+                                {% include "components/badge.html" with tone="danger" label="Inactiva" %}
+                            {% endif %}
+                        </td>
+                        <td>{{ profession.users.count }}</td>
+                        <td>
+                            {% if profession.is_default %}
+                                <span class="text-xs text-slate-500">Profesion por defecto</span>
+                            {% else %}
+                            <details class="relative inline-block text-left" data-row-actions>
+                                <summary class="inline-flex min-h-10 cursor-pointer list-none items-center justify-center gap-2 rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-ink-900 hover:bg-ink-50">
+                                    Acciones
+                                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                                    </svg>
+                                </summary>
+                                <div class="fixed z-50 w-64 rounded-xl border border-border bg-white p-2 shadow-panel" data-actions-menu>
+                                    <form method="post" action="{% url 'accounts:profession-delete' profession.id %}" class="space-y-2 px-3 py-2" data-loading-text="Eliminando profesion…">
+                                        {% csrf_token %}
+                                        <label for="reassign-{{ profession.id }}" class="block text-sm font-semibold text-ink-900">Reasignar usuarios a</label>
+                                        <select id="reassign-{{ profession.id }}" name="reassign_to" class="min-h-10 w-full rounded-lg border border-border px-2 text-sm text-ink-900">
+                                            {% for other in professions %}
+                                            {% if other.id != profession.id and other.is_active %}
+                                            <option value="{{ other.id }}">{{ other.name }}</option>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-danger hover:bg-rose-50">
+                                            Eliminar profesion
+                                        </button>
+                                    </form>
+                                </div>
+                            </details>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+        {% include "components/empty_state.html" with title="Aun no hay profesiones registradas" description="Agrega profesiones para identificar a los especialistas." %}
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+{% load versioned_static %}
+<script src="{% static_versioned 'js/row_actions.js' %}" defer></script>
+{% endblock %}
