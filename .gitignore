@@ -14,6 +14,7 @@ __pycache__/
 Neuroflex-data/
 **/ml/data/
 *.csv
+!archivos_neuroflex/neuroflex_dataset_augmented.csv
 output/
 node_modules/
 staticfiles/
