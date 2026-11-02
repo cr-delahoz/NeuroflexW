@@ -3,24 +3,18 @@ from django.test import SimpleTestCase
 from ml.services.inference_service import predict_cognitive_result
 from ml.services.model_loader import reset_model_cache
 
-FULL_METRICS = {
-    "TiempoRespuestaPararse": 2.5,
-    "TiempoRespuestaPregunta1": 3.1,
-    "TiempoRespuestaPregunta2": 3.8,
-    "TiempoRespuestaPregunta3": 4.2,
-    "TiempoReaccionVisual": 0.9,
-    "TiempoCapturarNumero": 2.8,
-}
 
-# Real session metrics used to validate the pipeline end-to-end (see task notes).
-REAL_SESSION_METRICS = {
+FULL_METRICS = {
     "TiempoRespuestaPararse": 0.0,
-    "TiempoRespuestaPregunta1": 10.23,
-    "TiempoRespuestaPregunta2": 17.48,
-    "TiempoRespuestaPregunta3": 8.7,
-    "TiempoReaccionVisual": 0.81,
-    "TiempoCapturarNumero": 9.53,
+    "TiempoActivoTarea": 288.45,
+    "TiempoRespuestaPregunta1": 54.36,
+    "TiempoRespuestaPregunta2": 7.07,
+    "TiempoRespuestaPregunta3": 27.77,
+    "TiempoCapturarNumero": 33.84,
+    "TiempoTutorial": 421.43,
+    "TipoEscena": 1,
 }
+PATIENT_INFO = {"dominant_hand": 1}
 
 
 class PredictCognitiveResultTests(SimpleTestCase):
@@ -29,53 +23,42 @@ class PredictCognitiveResultTests(SimpleTestCase):
     def setUp(self):
         reset_model_cache()
 
-    def test_full_metrics_return_available_result_with_contract_keys(self):
-        result = predict_cognitive_result(FULL_METRICS)
+    def test_returns_three_class_result_with_contract_keys(self):
+        result = predict_cognitive_result(FULL_METRICS, PATIENT_INFO)
 
         self.assertTrue(result["available"])
-        self.assertIn(result["predicted_class"], {"Sí", "No"})
+        self.assertIn(result["predicted_class"], {"bajo", "medio", "alto"})
+        self.assertEqual(set(result["probabilities"]), {"bajo", "medio", "alto"})
         self.assertIsInstance(result["predicted_class_probability"], float)
-        self.assertTrue(0.0 <= result["predicted_class_probability"] <= 1.0)
-        self.assertTrue(result["technical_confidence_label"].endswith("%"))
-        self.assertEqual(result["interpretation_status"], "legacy_unverified")
-        self.assertIn(result["legacy_label"], {"Deterioro cognitivo detectado", "Sin deterioro"})
-        self.assertTrue(result["model_name"])
-        self.assertEqual(result["model_mode"], "legacy_provisional")
-        self.assertIsNotNone(result["processed_at"])
+        self.assertAlmostEqual(sum(result["probabilities"].values()), 1.0, places=5)
+        self.assertEqual(result["model_mode"], "three_class_objects_dropout")
+        self.assertEqual(result["interpretation_status"], "experimental_unvalidated")
+        self.assertIn("objetos correctos", result["legacy_label"])
         self.assertTrue(result["warnings"])
-
-    def test_predicted_class_matches_probability_threshold(self):
-        result = predict_cognitive_result(FULL_METRICS)
-
-        if result["predicted_class"] == "Sí":
-            self.assertGreaterEqual(result["predicted_class_probability"], 0.5)
-        else:
-            self.assertLess(result["predicted_class_probability"], 0.5)
 
     def test_missing_required_variable_returns_unavailable(self):
         metrics = dict(FULL_METRICS)
         del metrics["TiempoCapturarNumero"]
 
-        result = predict_cognitive_result(metrics)
+        result = predict_cognitive_result(metrics, PATIENT_INFO)
 
         self.assertFalse(result["available"])
         self.assertIn("TiempoCapturarNumero", result["user_message"])
         self.assertIn("TiempoCapturarNumero", result["missing_features"])
 
+    def test_missing_hand_returns_unavailable(self):
+        result = predict_cognitive_result(FULL_METRICS)
+
+        self.assertFalse(result["available"])
+        self.assertIn("ManoPredominante", result["missing_features"])
+
     def test_empty_metrics_returns_unavailable(self):
-        result = predict_cognitive_result({})
+        result = predict_cognitive_result({}, PATIENT_INFO)
 
         self.assertFalse(result["available"])
         self.assertTrue(result["user_message"])
 
     def test_none_metrics_returns_unavailable_without_raising(self):
-        result = predict_cognitive_result(None)
+        result = predict_cognitive_result(None, PATIENT_INFO)
 
         self.assertFalse(result["available"])
-
-    def test_real_session_metrics_produce_available_result(self):
-        result = predict_cognitive_result(REAL_SESSION_METRICS)
-
-        self.assertTrue(result["available"])
-        self.assertIn(result["predicted_class"], {"Sí", "No"})
-        self.assertTrue(0.0 <= result["predicted_class_probability"] <= 1.0)

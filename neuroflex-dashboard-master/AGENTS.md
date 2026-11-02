@@ -44,8 +44,8 @@ Las vistas nunca consumen datos directamente — siempre mediante servicios.
 
 ## Machine Learning
 
-- **Modelo activo:** `ml/model_artifacts/neuroflex_3classes_model.onnx`, modo `three_class_provisional`.
-- Predice bandas de desempeño `bajo`, `medio` o `alto` derivadas de `Precision`; no predice deterioro cognitivo.
+- **Modelo activo:** `ml/model_artifacts/dropout_objects_model.joblib`, modo `three_class_objects_dropout`.
+- Predice rangos `bajo`, `medio` o `alto` de `ObjetosInteractuadosCorrectamente`; no predice deterioro cognitivo.
 - **NO constituye validación clínica.** No presentar como diagnóstico ni evaluación definitiva; comunicar que es un resultado provisional.
 
 ### Flujo de inferencia
@@ -58,13 +58,13 @@ No mezclar responsabilidades.
 
 ### Feature Builder
 
-`ml/services/performance_feature_builder.py` construye las 19 entradas del modelo, incluidas `tiempo_total`, `ratio_aciertos` y las transformaciones logarítmicas. Requiere las diez métricas de sesión del modelo y `dominant_hand`/`ManoPredominante` desde los metadatos del paciente.
+`ml/services/performance_feature_builder.py` construye las nueve entradas del pipeline congelado: mano dominante, siete tiempos de sesión y tipo de escena. Requiere `dominant_hand`/`ManoPredominante` desde los metadatos del paciente.
 
-Toda transformación ocurre únicamente dentro de Feature Builder — nunca en vistas, templates, PDF ni dashboard. Imputación, escalado y codificación categórica están incluidos en el grafo ONNX.
+El preprocesamiento ajustado (imputación, escalado y codificación categórica) forma parte del pipeline serializado y se ejecuta dentro del servicio de inferencia.
 
 ### Inference Service
 
-Carga el modelo ONNX vía ONNX Runtime, ejecuta inferencia y devuelve clase y probabilidades estructuradas. No interpreta clínicamente ni genera HTML/PDF.
+Carga el pipeline congelado vía joblib, ejecuta `predict_proba` y devuelve clase y probabilidades estructuradas. No interpreta clínicamente ni genera HTML/PDF.
 
 ### Contrato de inferencia
 

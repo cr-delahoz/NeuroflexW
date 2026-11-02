@@ -7,8 +7,8 @@ from django.utils import timezone
 
 PERFORMANCE_CLASS_LABELS = {0: "bajo", 1: "medio", 2: "alto"}
 PERFORMANCE_WARNING = (
-    "Modelo experimental sin validacion clinica. En la prueba guardada no "
-    "identifico ejemplos de la clase medio. No es un diagnostico."
+    "Modelo experimental no validado clinicamente. El resultado es "
+    "orientativo y no constituye un diagnostico."
 )
 
 
@@ -36,12 +36,13 @@ def interpret_class_probabilities(class_id, class_probabilities, *, metadata=Non
         "probability_labels": probability_labels,
         "predicted_class_probability": probability,
         "technical_confidence_label": f"{probability * 100:.1f}%",
-        "legacy_label": f"Banda de desempeno estimada: {label}",
+        "legacy_label": f"Rango de objetos correctos estimado: {label}",
         "interpretation_status": "experimental_unvalidated",
         "model_name": metadata.get(
-            "nombre_modelo", "NeuroFlex - Clasificador de banda de desempeño (3 clases)"
+            "nombre_modelo",
+            "NeuroFlex - MLP con Dropout para objetos correctos (3 clases)",
         ),
-        "model_mode": "three_class_provisional",
+        "model_mode": "three_class_objects_dropout",
         "processed_at": timezone.now(),
         "warnings": [metadata.get("advertencia", PERFORMANCE_WARNING)],
     }

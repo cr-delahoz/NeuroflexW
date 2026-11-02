@@ -127,7 +127,7 @@ SESSION_LOCAL_DATA_PATH = Path(
     )
 )
 COGNITIVE_MODEL_DIR = BASE_DIR / "ml" / "model_artifacts"
-COGNITIVE_MODEL_MODE = os.getenv("COGNITIVE_MODEL_MODE", "three_class_provisional")
+COGNITIVE_MODEL_MODE = os.getenv("COGNITIVE_MODEL_MODE", "three_class_objects_dropout")
 COGNITO_REGION = os.getenv("COGNITO_REGION", "us-east-1")
 runtime_config = RuntimeConfig()
 COGNITO_CLIENT_ID = runtime_config.get_cognito_client_id() or "change-me"

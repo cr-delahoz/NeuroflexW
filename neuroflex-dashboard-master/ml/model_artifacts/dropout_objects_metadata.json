@@ -1,0 +1,43 @@
+{
+  "nombre_modelo": "NeuroFlex - MLP con Dropout para objetos correctos (3 clases)",
+  "version": "1.0.0",
+  "framework": "scikit-learn y NumPy",
+  "tipo_modelo": "Red neuronal de una capa oculta con dropout",
+  "variable_objetivo": "ObjetosInteractuadosCorrectamente",
+  "clases": {
+    "0": "bajo",
+    "1": "medio",
+    "2": "alto"
+  },
+  "regla_clases": {
+    "bajo": "ObjetosInteractuadosCorrectamente <= 3.0000",
+    "medio": "3.0000 < ObjetosInteractuadosCorrectamente <= 6.0000",
+    "alto": "ObjetosInteractuadosCorrectamente > 6.0000"
+  },
+  "columnas_entrada": [
+    "dominant_hand",
+    "TiempoRespuestaPararse",
+    "TiempoActivoTarea",
+    "TiempoRespuestaPregunta1",
+    "TiempoRespuestaPregunta2",
+    "TiempoRespuestaPregunta3",
+    "TiempoCapturarNumero",
+    "TiempoTutorial",
+    "TipoEscena"
+  ],
+  "metricas_test": {
+    "accuracy": 0.5583881578947368,
+    "balanced_accuracy": 0.5543987374538103,
+    "f1_macro": 0.5599339634906433,
+    "f1_weighted": 0.5582267525030097
+  },
+  "parametros": {
+    "hidden_units": 64,
+    "dropout_rate": 0.25,
+    "epochs": 70,
+    "batch_size": 128,
+    "random_state": 42
+  },
+  "scikit_learn": "1.9.1",
+  "advertencia": "Resultado experimental de desempeño. No es un diagnóstico ni una evaluación clínica."
+}

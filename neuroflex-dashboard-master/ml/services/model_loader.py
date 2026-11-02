@@ -70,10 +70,9 @@ def get_model_dir():
 def reset_model_cache():
     """Reset the cached artifacts for tests or controlled reloads."""
     _CACHE.clear()
-    # Keep the public cache-reset hook compatible with the active ONNX model.
-    from .onnx_model_loader import reset_onnx_model_cache
+    from .performance_model_loader import reset_performance_model_cache
 
-    reset_onnx_model_cache()
+    reset_performance_model_cache()
 
 
 def _load_weights(model_dir):

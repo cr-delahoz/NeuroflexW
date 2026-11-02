@@ -1,18 +1,18 @@
-"""ONNX inference for NeuroFlex's provisional three-class performance model."""
+"""Inference services for NeuroFlex models."""
 
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 
-from .onnx_model_loader import (
-    OnnxModelError,
-    OnnxModelNotFoundError,
-    OnnxRuntimeUnavailableError,
-    get_onnx_model_artifacts,
-)
 from .performance_feature_builder import (
     MissingPerformanceFeatureError,
     build_performance_features,
+)
+from .performance_model_loader import (
+    PerformanceModelError,
+    PerformanceModelNotFoundError,
+    get_performance_model_artifacts,
 )
 from .result_interpreter import interpret_class_probabilities, interpret_probability
 
@@ -56,24 +56,20 @@ def _unavailable(user_message, *, missing_features=None):
 
 
 def predict_cognitive_result(metrics, patient_info=None):
-    """Run the three-class performance model over a session's raw metrics."""
+    """Run the frozen three-class object-count model on raw session metrics."""
     try:
-        artifacts = get_onnx_model_artifacts()
-    except OnnxModelNotFoundError:
+        artifacts = get_performance_model_artifacts()
+    except PerformanceModelNotFoundError:
         return _unavailable(
-            "El modelo de desempeño no se encuentra disponible en este entorno."
+            "El modelo de objetos correctos no se encuentra disponible en este entorno."
         )
-    except OnnxRuntimeUnavailableError:
-        return _unavailable(
-            "No está instalado ONNX Runtime. Instala las dependencias del proyecto."
-        )
-    except OnnxModelError:
-        return _unavailable("No se pudo cargar el modelo de desempeño.")
+    except PerformanceModelError:
+        return _unavailable("No se pudo cargar el modelo de objetos correctos.")
 
     try:
         features = build_performance_features(
             metrics,
-            artifacts["metadata"]["columnas_entrada"],
+            artifacts["columns"],
             patient_info=patient_info,
         )
     except MissingPerformanceFeatureError as exc:
@@ -83,20 +79,14 @@ def predict_cognitive_result(metrics, patient_info=None):
             missing_features=exc.missing_features,
         )
 
-    feeds = {}
-    for name, value in features.items():
-        if artifacts["input_types"][name] == "tensor(int64)":
-            feeds[name] = np.asarray([[value]], dtype=np.int64)
-        else:
-            feeds[name] = np.asarray([[value]], dtype=np.float32)
-
     try:
-        output_names = [item.name for item in artifacts["session"].get_outputs()]
-        outputs = dict(zip(output_names, artifacts["session"].run(None, feeds)))
-        class_id = int(np.asarray(outputs["label"]).reshape(-1)[0])
-        probabilities = np.asarray(outputs["probabilities"], dtype=float).reshape(-1)
+        model_input = pd.DataFrame([features], columns=artifacts["columns"])
+        probabilities = np.asarray(
+            artifacts["model"].predict_proba(model_input), dtype=float
+        ).reshape(-1)
+        class_id = int(np.argmax(probabilities))
         return interpret_class_probabilities(
             class_id, probabilities, metadata=artifacts["metadata"]
         )
-    except (KeyError, TypeError, ValueError, RuntimeError):
-        return _unavailable("No se pudo ejecutar el modelo de desempeño.")
+    except (KeyError, TypeError, ValueError, RuntimeError, AttributeError):
+        return _unavailable("No se pudo ejecutar el modelo de objetos correctos.")

@@ -8,7 +8,10 @@ from .model_loader import (
     get_model_dir,
     reset_model_cache,
 )
-from .onnx_model_loader import get_onnx_model_artifacts, reset_onnx_model_cache
+from .performance_model_loader import (
+    get_performance_model_artifacts,
+    reset_performance_model_cache,
+)
 from .performance_feature_builder import (
     MissingPerformanceFeatureError,
     build_performance_features,
@@ -25,11 +28,11 @@ __all__ = [
     "forward",
     "get_model_artifacts",
     "get_model_dir",
-    "get_onnx_model_artifacts",
+    "get_performance_model_artifacts",
     "build_performance_features",
     "interpret_class_probabilities",
     "interpret_probability",
     "predict_cognitive_result",
     "reset_model_cache",
-    "reset_onnx_model_cache",
+    "reset_performance_model_cache",
 ]

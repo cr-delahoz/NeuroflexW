@@ -216,13 +216,13 @@ def build_cognitive_result_items(cognitive_result):
         return []
 
     rows = [
-        ("Banda de desempeño estimada", cognitive_result["predicted_class"]),
+        ("Rango de objetos correctos estimado", cognitive_result["predicted_class"]),
         (
             "Probabilidad tecnica asociada a la clase predicha",
             cognitive_result.get("technical_confidence_label", "No disponible"),
         ),
         (
-            "Probabilidades estimadas por banda",
+            "Probabilidades estimadas por clase",
             "; ".join(
                 f"{label}: {probability}"
                 for label, probability in cognitive_result.get(
@@ -232,7 +232,7 @@ def build_cognitive_result_items(cognitive_result):
         ),
         (
             "Estado de interpretacion",
-            "Provisional; requiere validacion clinica",
+            "Experimental; resultado provisional, no es un diagnostico",
         ),
         ("Modelo utilizado", cognitive_result.get("model_name", "No disponible")),
         (

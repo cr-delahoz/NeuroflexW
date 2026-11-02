@@ -57,7 +57,7 @@
         <div class="mt-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div class="grid gap-3 sm:grid-cols-2">
                 <div class="rounded-2xl border border-border bg-mist px-4 py-4">
-                    <p class="text-sm font-semibold text-slate-600">Banda de desempeño estimada</p>
+                    <p class="text-sm font-semibold text-slate-600">Rango estimado de objetos correctos</p>
                     <div class="mt-2">
                         {% if cognitive_result.predicted_class == "bajo" %}
                             {% include "components/badge.html" with tone="danger" label=cognitive_result.predicted_class %}

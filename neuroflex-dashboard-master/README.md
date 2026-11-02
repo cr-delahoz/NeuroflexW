@@ -8,7 +8,7 @@ Aplicación web Django para administrar usuarios, visualizar sesiones clínicas 
 
 - **Roles ADMIN y SPECIALIST** — administración de usuarios, dashboards diferenciados y control de acceso.
 - **Sesiones clínicas** — visualización y detalle de sesiones desde JSON locales (reemplazable por API REST).
-- **Machine Learning** — modelo ONNX de tres clases (`bajo`, `medio`, `alto`) para estimar bandas de desempeño; se muestra como resultado provisional, no diagnóstico. El modelo requiere las métricas de la sesión y la mano dominante del paciente.
+- **Machine Learning** — MLP congelado con dropout para clasificar rangos (`bajo`, `medio`, `alto`) de objetos interactuados correctamente. Se muestra como resultado provisional, no diagnóstico, y usa métricas de sesión y mano dominante.
 - **Informes PDF** — solicitud, aprobación, rechazo y generación de informes clínicos.
 - **Auditoría** — registro de eventos con exportación CSV y PDF.
 - **Retroalimentación de carga** — spinners en botones, paginación y acciones mediante Tailwind + JS vanilla (`static/js/ui-feedback.js`).
