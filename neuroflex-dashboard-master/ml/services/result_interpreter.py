@@ -1,4 +1,4 @@
-"""Presentation-layer interpretation of the cognitive model's raw probability."""
+"""Presentation of the three-class correct-object model output."""
 
 from __future__ import annotations
 
@@ -45,37 +45,4 @@ def interpret_class_probabilities(class_id, class_probabilities, *, metadata=Non
         "model_mode": "three_class_objects_dropout",
         "processed_at": timezone.now(),
         "warnings": [metadata.get("advertencia", PERFORMANCE_WARNING)],
-    }
-
-THRESHOLD = 0.5
-
-DISCLAIMER = (
-    "Resultado provisional generado por un modelo heredado entrenado "
-    "mayormente con datos sinteticos (accuracy ~85% sobre test sintetico, "
-    "sin validacion clinica). No constituye un diagnostico."
-)
-
-
-def interpret_probability(probability, *, metadata=None):
-    """Build the SessionDetailView/PDF presentation contract from a raw probability."""
-    metadata = metadata or {}
-    predicted_positive = probability >= THRESHOLD
-    predicted_class = "Sí" if predicted_positive else "No"
-    confidence = probability if predicted_positive else (1 - probability)
-
-    return {
-        "available": True,
-        "predicted_class": predicted_class,
-        "predicted_class_probability": probability,
-        "technical_confidence_label": f"{confidence * 100:.1f}%",
-        "interpretation_status": "legacy_unverified",
-        "legacy_label": (
-            "Deterioro cognitivo detectado" if predicted_positive else "Sin deterioro"
-        ),
-        "model_name": metadata.get(
-            "nombre_modelo", "NeuroFlex - Clasificador Deterioro Cognitivo"
-        ),
-        "model_mode": "legacy_provisional",
-        "processed_at": timezone.now(),
-        "warnings": [DISCLAIMER],
     }

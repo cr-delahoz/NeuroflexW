@@ -592,7 +592,7 @@ def build_pdf_bytes(report_request, normalized_session, logo_image=None):
     evaluated_at = format_datetime_for_report(normalized_session["evaluated_at"])
     cognitive = normalized_session["cognitive_result"]
     probability = cognitive.get("predicted_class_probability")
-    probability = float(probability) if probability is not None else 0.0
+    probability_label = f"{float(probability):.3f}" if probability is not None else "No disponible"
     requester = get_requester_display(report_request)
     requester_account = report_request.requested_by
     specialist_email = (
@@ -623,7 +623,7 @@ def build_pdf_bytes(report_request, normalized_session, logo_image=None):
     first.extend(_pdf_text(94, y - 25, "Resultado automatizado provisional", bold=True, size=8.5, color=PDF_BLUE))
     first.extend(_pdf_text(94, y - 47, label, bold=True, size=13))
     first.extend(_pdf_text(94, y - 67, "No constituye un diagnostico. Requiere interpretacion profesional.", size=8.5, color="0.20 0.32 0.48"))
-    first.extend(_pdf_text(418, y - 33, f"{probability:.3f}", bold=True, size=16, color=PDF_BLUE))
+    first.extend(_pdf_text(418, y - 33, probability_label, bold=True, size=16 if probability is not None else 9, color=PDF_BLUE))
     first.extend(_pdf_text(392, y - 50, "Puntuacion tecnica", size=7.5, color="0.20 0.32 0.48"))
     y -= 99
     metric_rows = _metric_rows(normalized_session["performance_items"])

@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from PyInstaller.utils.hooks import collect_dynamic_libs
+from PyInstaller.utils.hooks import collect_submodules
 
 block_cipher = None
 
@@ -11,11 +11,14 @@ BASE_DIR = Path(SPECPATH)
 a = Analysis(
     ['neuroflex_launcher.py'],
     pathex=[str(BASE_DIR)],
-    binaries=collect_dynamic_libs('onnxruntime'),
+    binaries=[],
     datas=[
         ('templates', 'templates'),
         ('static', 'static'),
-        ('ml/model_artifacts', 'ml/model_artifacts'),
+        ('ml/model_artifacts/dropout_objects_model.joblib', 'ml/model_artifacts'),
+        ('ml/model_artifacts/dropout_objects_metadata.json', 'ml/model_artifacts'),
+        ('ml/model_artifacts/dropout_objects_columns.json', 'ml/model_artifacts'),
+        ('ml/model_artifacts/dropout_objects_sha256.txt', 'ml/model_artifacts'),
         ('config', 'config'),
         ('accounts', 'accounts'),
         ('dashboard', 'dashboard'),
@@ -70,13 +73,12 @@ a = Analysis(
         'offline_mode.api.lan.pairing',
         'offline_mode.api.lan.terms',
         'ml',
-        'onnxruntime',
-        'onnxruntime.capi.onnxruntime_pybind11_state',
-    ],
+        'ml.dropout_mlp',
+    ] + collect_submodules('sklearn', filter=lambda name: '.tests' not in name),
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['tensorflow', 'keras', 'sklearn', 'scikit-learn', 'threadpoolctl', 'scipy'],
+    excludes=['tensorflow', 'keras'],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=block_cipher,

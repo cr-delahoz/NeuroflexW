@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 
 import joblib
+import numpy as np
 from django.conf import settings
 
 
@@ -53,6 +54,11 @@ def get_performance_model_artifacts():
     model_columns = list(getattr(model, "feature_names_in_", []))
     if model_columns and model_columns != columns:
         raise PerformanceModelError("Pipeline input columns do not match the metadata.")
+
+    if not np.array_equal(getattr(model, "classes_", []), [0, 1, 2]):
+        raise PerformanceModelError("Expected the three object-count classes in order: 0, 1, 2.")
+    if metadata.get("variable_objetivo") != "ObjetosInteractuadosCorrectamente":
+        raise PerformanceModelError("Expected an object-count performance model.")
 
     _CACHE = {"model": model, "metadata": metadata, "columns": columns}
     return _CACHE

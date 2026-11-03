@@ -1,7 +1,9 @@
-from django.test import SimpleTestCase
+from unittest.mock import patch
+
+from django.test import SimpleTestCase, override_settings
 
 from ml.services.inference_service import predict_cognitive_result
-from ml.services.model_loader import reset_model_cache
+from ml.services.performance_model_loader import reset_performance_model_cache
 
 
 FULL_METRICS = {
@@ -21,7 +23,7 @@ class PredictCognitiveResultTests(SimpleTestCase):
     databases = set()
 
     def setUp(self):
-        reset_model_cache()
+        reset_performance_model_cache()
 
     def test_returns_three_class_result_with_contract_keys(self):
         result = predict_cognitive_result(FULL_METRICS, PATIENT_INFO)
@@ -62,3 +64,22 @@ class PredictCognitiveResultTests(SimpleTestCase):
         result = predict_cognitive_result(None, PATIENT_INFO)
 
         self.assertFalse(result["available"])
+
+    @override_settings(COGNITIVE_MODEL_MODE="legacy_provisional")
+    def test_old_configuration_cannot_select_binary_model(self):
+        result = predict_cognitive_result(FULL_METRICS, PATIENT_INFO)
+
+        self.assertTrue(result["available"])
+        self.assertEqual(result["model_mode"], "three_class_objects_dropout")
+        self.assertIn(result["predicted_class"], {"bajo", "medio", "alto"})
+
+    def test_invalid_model_probabilities_return_unavailable(self):
+        from ml.services.performance_model_loader import get_performance_model_artifacts
+
+        pipeline = get_performance_model_artifacts()["model"]
+        for probabilities in ([[0.3, 0.7]], [[float("nan"), 0.5, 0.5]], [[0.2, 0.2, 0.2]]):
+            with self.subTest(probabilities=probabilities):
+                with patch.object(pipeline, "predict_proba", return_value=probabilities):
+                    result = predict_cognitive_result(FULL_METRICS, PATIENT_INFO)
+                self.assertFalse(result["available"])
+                self.assertNotIn("predicted_class", result)

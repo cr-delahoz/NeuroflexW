@@ -1,39 +1,44 @@
 from pathlib import Path
+from unittest.mock import patch
 
+import numpy as np
 from django.test import SimpleTestCase, override_settings
 
-from ml.services.model_loader import (
-    ModelArtifactsNotFoundError,
-    get_model_artifacts,
-    reset_model_cache,
+from ml.services.performance_model_loader import (
+    PerformanceModelError,
+    PerformanceModelNotFoundError,
+    get_performance_model_artifacts,
+    reset_performance_model_cache,
 )
 
 
-class GetModelArtifactsTests(SimpleTestCase):
-    databases = set()
-
+class GetPerformanceModelArtifactsTests(SimpleTestCase):
     def setUp(self):
-        reset_model_cache()
+        reset_performance_model_cache()
+        self.addCleanup(reset_performance_model_cache)
 
-    def tearDown(self):
-        reset_model_cache()
+    def test_loads_frozen_three_class_pipeline(self):
+        artifacts = get_performance_model_artifacts()
 
-    def test_loads_weights_scaler_columns_and_metadata(self):
-        artifacts = get_model_artifacts()
-
-        self.assertEqual(len(artifacts["columns"]), 12)
-        self.assertIn("dense0_W", artifacts["weights"])
-        self.assertIn("bn0_gamma", artifacts["weights"])
-        self.assertTrue(hasattr(artifacts["scaler"], "transform"))
-        self.assertIn("nombre_modelo", artifacts["metadata"])
+        self.assertEqual(len(artifacts["columns"]), 9)
+        self.assertEqual(list(artifacts["model"].classes_), [0, 1, 2])
+        self.assertEqual(artifacts["metadata"]["variable_objetivo"], "ObjetosInteractuadosCorrectamente")
+        self.assertTrue(hasattr(artifacts["model"], "predict_proba"))
 
     def test_second_call_returns_cached_instance(self):
-        first = get_model_artifacts()
-        second = get_model_artifacts()
-
-        self.assertIs(first, second)
+        self.assertIs(get_performance_model_artifacts(), get_performance_model_artifacts())
 
     @override_settings(COGNITIVE_MODEL_DIR=Path("/nonexistent/model/dir"))
     def test_missing_artifacts_directory_raises(self):
-        with self.assertRaises(ModelArtifactsNotFoundError):
-            get_model_artifacts()
+        with self.assertRaises(PerformanceModelNotFoundError):
+            get_performance_model_artifacts()
+
+    def test_rejects_binary_or_reordered_model_classes(self):
+        pipeline = get_performance_model_artifacts()["model"]
+        for classes in ([0, 1], [2, 1, 0]):
+            with self.subTest(classes=classes):
+                reset_performance_model_cache()
+                with patch.object(pipeline.steps[-1][1], "classes_", np.array(classes)):
+                    with patch("ml.services.performance_model_loader.joblib.load", return_value=pipeline):
+                        with self.assertRaises(PerformanceModelError):
+                            get_performance_model_artifacts()

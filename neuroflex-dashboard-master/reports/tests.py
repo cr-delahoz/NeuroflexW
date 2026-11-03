@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from audit.models import AuditLog
 from clinical_sessions.services import ExternalSessionServiceUnavailableError
+from ml.services import predict_cognitive_result
 
 from .models import ReportRequest
 
@@ -142,7 +143,9 @@ class ReportFlowTests(TestCase):
         self.assertEqual(report_request.status, ReportRequest.Status.PENDING)
         self.assertEqual(report_request.requested_by, self.specialist_user)
         self.assertEqual(report_request.specialist_observation, "Observacion breve")
-        self.assertEqual(report_request.session_snapshot, API_SESSION_WITH_METRICS)
+        self.assertEqual(
+            report_request.session_snapshot, dict(API_SESSION_WITH_METRICS, patient_info={})
+        )
         mock_get_session.assert_called_once_with(
             "fake-sub", "fake-id-token", "SESSION-001"
         )
@@ -462,9 +465,14 @@ class ReportFlowTests(TestCase):
         self.assertIn(b"Resultado automatizado provisional", pdf_bytes)
 
     def test_pdf_includes_real_model_result_when_metrics_are_complete(self):
-        full_metrics = dict(SESSION_METRICS, TiempoReaccionVisual=0.9)
+        full_metrics = dict(SESSION_METRICS)
+        patient_info = {"dominant_hand": 2}
+        expected = predict_cognitive_result(full_metrics, patient_info)
+        self.assertTrue(expected["available"])
         report_request = self._create_report_request(
-            session_snapshot=dict(API_SESSION_WITH_METRICS, metrics=full_metrics),
+            session_snapshot=dict(
+                API_SESSION_WITH_METRICS, metrics=full_metrics, patient_info=patient_info
+            ),
         )
         self.client.login(username="admin_user", password="test-pass-123")
         self.client.post(reverse("reports:approve", args=[report_request.pk]))
@@ -475,6 +483,21 @@ class ReportFlowTests(TestCase):
         self.assertIn(b"Puntuacion tecnica", pdf_bytes)
         self.assertIn(b"Resultado automatizado provisional", pdf_bytes)
         self.assertNotIn(b"Procedencia tecnica del resultado", pdf_bytes)
+        self.assertIn(expected["legacy_label"].encode("latin-1"), pdf_bytes)
+        self.assertIn(f'{expected["predicted_class_probability"]:.3f}'.encode("ascii"), pdf_bytes)
+        self.assertNotIn(b"Deterioro cognitivo detectado", pdf_bytes)
+
+    def test_pdf_without_required_features_does_not_show_zero_probability(self):
+        report_request = self._create_report_request()
+        self.client.login(username="admin_user", password="test-pass-123")
+        self.client.post(reverse("reports:approve", args=[report_request.pk]))
+        report_request.refresh_from_db()
+
+        self.assertEqual(report_request.status, ReportRequest.Status.GENERATED)
+        pdf_bytes = report_request.file.read()
+        self.assertIn(b"Resultado no disponible", pdf_bytes)
+        self.assertIn(b"No disponible", pdf_bytes)
+        self.assertNotIn(b"(0.000)", pdf_bytes)
 
     def test_pdf_uses_username_when_full_name_is_missing(self):
         report_request = self._create_report_request(

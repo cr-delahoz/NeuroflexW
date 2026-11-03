@@ -15,6 +15,14 @@ Aplicación web Django para administrar usuarios, visualizar sesiones clínicas 
 - **Updater interno** — barra de progreso con polling a `/updater/progress/<job_id>/`, ejecución de batch sin consola Windows, metadatos vía `latest.json`.
 - **Instalador Windows** — build con PyInstaller + NSIS.
 
+### Modelo utilizado
+
+El único modelo del dashboard es `ml/model_artifacts/dropout_objects_model.joblib`, exportado por `../neuroflex_mlp_dropout_objetos_3clases.ipynb`. Incluye el preprocesamiento ajustado y la red MLP con dropout; el dashboard solo ejecuta inferencia, sin reentrenar.
+
+Las clases estiman objetos correctos: **bajo** (hasta 3), **medio** (más de 3 y hasta 6) y **alto** (más de 6). No representan niveles de deterioro cognitivo. La puntuación técnica del PDF es la probabilidad de la clase predicha. Si faltan entradas, el resultado aparece como no disponible.
+
+Se retiraron el modelo binario Sí/No y sus artefactos. Las configuraciones antiguas de `COGNITIVE_MODEL_MODE` no cambian el modelo utilizado. Los PDF ya emitidos conservan su contenido; los informes nuevos utilizan el MLP de tres clases.
+
 ---
 
 ## Dependencias del proyecto

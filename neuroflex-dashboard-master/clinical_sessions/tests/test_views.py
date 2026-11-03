@@ -165,9 +165,12 @@ class ClinicalSessionViewTests(TestCase):
                 "TiempoRespuestaPregunta1": 3.1,
                 "TiempoRespuestaPregunta2": 3.8,
                 "TiempoRespuestaPregunta3": 4.2,
-                "TiempoReaccionVisual": 0.9,
+                "TiempoActivoTarea": 300.0,
+                "TiempoTutorial": 10.0,
+                "TipoEscena": 1,
                 "TiempoCapturarNumero": 2.8,
             },
+            "patient_info": {"dominant_hand": 1},
         }
         self._login_with_neuroflex_session()
 
@@ -177,5 +180,10 @@ class ClinicalSessionViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Resultado automatizado (provisional)")
-        self.assertContains(response, "Confianza tecnica asociada")
-        self.assertContains(response, "Resultado provisional generado")
+        self.assertTrue(response.context["cognitive_result"]["available"])
+        self.assertEqual(response.context["cognitive_result"]["model_mode"], "three_class_objects_dropout")
+        self.assertContains(response, "Rango estimado de objetos correctos")
+        self.assertContains(response, "Probabilidad técnica de la clase")
+        self.assertContains(response, "Probabilidades estimadas por banda")
+        self.assertContains(response, "MLP con Dropout")
+        self.assertNotContains(response, "Deterioro cognitivo detectado")
