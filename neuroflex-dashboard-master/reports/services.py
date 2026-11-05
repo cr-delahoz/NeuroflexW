@@ -218,19 +218,6 @@ def build_cognitive_result_items(cognitive_result):
     rows = [
         ("Rango de objetos correctos estimado", cognitive_result["predicted_class"]),
         (
-            "Probabilidad tecnica asociada a la clase predicha",
-            cognitive_result.get("technical_confidence_label", "No disponible"),
-        ),
-        (
-            "Probabilidades estimadas por clase",
-            "; ".join(
-                f"{label}: {probability}"
-                for label, probability in cognitive_result.get(
-                    "probability_labels", {}
-                ).items()
-            ) or "No disponible",
-        ),
-        (
             "Estado de interpretacion",
             "Experimental; resultado provisional, no es un diagnostico",
         ),
@@ -253,15 +240,6 @@ def build_cognitive_result_items(cognitive_result):
 
 def build_section_elements(report_request, normalized_session):
     requester = get_requester_display(report_request)
-    if report_request.reviewed_by:
-        admin_name = (
-            report_request.reviewed_by.get_full_name().strip()
-            or report_request.reviewed_by.username
-        )
-    elif report_request.reviewed_at:
-        admin_name = "Autogenerado sin aprobacion (permiso del especialista)"
-    else:
-        admin_name = "No disponible"
 
     elements = [
         {"type": "section", "title": "Identificacion del informe"},
@@ -312,8 +290,6 @@ def build_section_elements(report_request, normalized_session):
         patient_rows.append(("Identificador interno", patient["internal_id"]))
     if patient.get("age") is not None:
         patient_rows.append(("Edad", patient["age"]))
-    if patient.get("dominant_hand"):
-        patient_rows.append(("Mano dominante", patient["dominant_hand"]))
     patient_rows.append(
         (
             "Fecha de evaluacion",
@@ -368,64 +344,6 @@ def build_section_elements(report_request, normalized_session):
             }
         )
 
-    if report_request.specialist_observation:
-        elements.append({"type": "section", "title": "Observaciones del especialista"})
-        elements.append(
-            {
-                "type": "paragraph",
-                "text": report_request.specialist_observation,
-            }
-        )
-
-    elements.extend(
-        [
-            {"type": "section", "title": "Trazabilidad"},
-            {
-                "type": "table",
-                "rows": [
-                    ("Identificador de solicitud", report_request.pk),
-                    ("Especialista solicitante", requester["display_name"]),
-                    ("Username", requester["username"]),
-                    (
-                        "Fecha y hora de solicitud",
-                        format_datetime_for_report(report_request.requested_at),
-                    ),
-                    ("Aprobado administrativamente por", admin_name),
-                    (
-                        "Fecha y hora de aprobacion",
-                        format_datetime_for_report(report_request.reviewed_at),
-                    ),
-                    (
-                        "Fecha y hora de generacion",
-                        format_datetime_for_report(report_request.generated_at),
-                    ),
-                    (
-                        "Origen de los datos",
-                        "API de NeuroFlex (snapshot tomado al momento de la solicitud).",
-                    ),
-                ],
-            },
-            {"type": "section", "title": "Aviso"},
-            {
-                "type": "paragraph",
-                "text": (
-                    "Este informe contiene una estimacion automatizada basada "
-                    "en datos obtenidos durante una sesion de evaluacion con "
-                    "realidad virtual. El resultado no constituye un "
-                    "diagnostico medico y debe interpretarse junto con otros "
-                    "antecedentes clinicos y profesionales."
-                ),
-            },
-            {
-                "type": "paragraph",
-                "text": (
-                    "Documento generado a partir de los datos de la sesion "
-                    "obtenidos desde la API de NeuroFlex al momento de la "
-                    "solicitud."
-                ),
-            },
-        ]
-    )
     return elements
 
 
@@ -557,7 +475,7 @@ def _metric_rows(performance_items):
     rows = []
     for item in performance_items:
         label, value = item["label"], item["value"]
-        if label in {"TipoEscena", "Edad", "ManoPredominante", "Anno", "Mes", "Dia"}:
+        if label in {"TipoEscena", "Edad", "ManoPredominante", "dominant_hand", "dominantHand", "Anno", "Mes", "Dia"}:
             continue
         suffix = " %" if label == "Precision" else " s" if label.startswith("Tiempo") else " conteo" if label in {"CantAciertasTotales", "ObjetosInteractuadosCorrectamente"} else ""
         rows.append((labels.get(label, label), f"{value}{suffix}", "Sin referencia disponible"))
@@ -572,18 +490,6 @@ def _metric_card(ops, x, y, title, value, *, accent="0.10 0.32 0.60"):
     ops.extend(_pdf_text(x + 16, y - 42, value, bold=True, size=15, color=PDF_NAVY))
 
 
-def _timeline(ops, y, events):
-    """Render report traceability as a timeline instead of a dense table."""
-    line_x = 96
-    ops.extend(_pdf_line(line_x, y - 13, line_x, y - (len(events) - 1) * 51 - 13, color="0.66 0.78 0.91", line_width=2))
-    for index, (title, owner, moment) in enumerate(events):
-        event_y = y - index * 51
-        ops.extend(_pdf_rect(line_x - 5, event_y - 18, 10, 10, fill=PDF_BLUE))
-        ops.extend(_pdf_text(116, event_y - 7, title, bold=True, size=10))
-        ops.extend(_pdf_text(116, event_y - 23, f"{owner}  -  {moment}", size=8.5, color="0.20 0.32 0.48"))
-    return y - len(events) * 51
-
-
 def build_pdf_bytes(report_request, normalized_session, logo_image=None):
     """Build a cover and specialist-focused clinical session report."""
     patient = normalized_session["patient"]
@@ -591,14 +497,12 @@ def build_pdf_bytes(report_request, normalized_session, logo_image=None):
     session_id = _display_value(normalized_session["session_id"])
     evaluated_at = format_datetime_for_report(normalized_session["evaluated_at"])
     cognitive = normalized_session["cognitive_result"]
-    probability = cognitive.get("predicted_class_probability")
-    probability_label = f"{float(probability):.3f}" if probability is not None else "No disponible"
     requester = get_requester_display(report_request)
     requester_account = report_request.requested_by
     specialist_email = (
         (requester_account.email or requester_account.username)
         if requester_account
-        else "No disponible"
+        else requester["display_name"]
     )
     specialist_profession = (
         requester["profession"].name
@@ -614,7 +518,6 @@ def build_pdf_bytes(report_request, normalized_session, logo_image=None):
         ("Especialista", specialist_email, "Profesion", specialist_profession),
         ("Sesion", session_id, "Fecha de evaluacion", evaluated_at),
         ("Tipo de escena", normalized_session["metrics"].get("scene_type"), "Edad", patient.get("age")),
-        ("Mano predominante", patient.get("dominant_hand"), "", ""),
     ], [82, 154, 104, 128]) - 22
     y = _section(first, 2, "Indicador provisional del modelo", y)
     label = cognitive.get("legacy_label") or cognitive.get("predicted_class") or "Resultado no disponible"
@@ -623,8 +526,6 @@ def build_pdf_bytes(report_request, normalized_session, logo_image=None):
     first.extend(_pdf_text(94, y - 25, "Resultado automatizado provisional", bold=True, size=8.5, color=PDF_BLUE))
     first.extend(_pdf_text(94, y - 47, label, bold=True, size=13))
     first.extend(_pdf_text(94, y - 67, "No constituye un diagnostico. Requiere interpretacion profesional.", size=8.5, color="0.20 0.32 0.48"))
-    first.extend(_pdf_text(418, y - 33, probability_label, bold=True, size=16 if probability is not None else 9, color=PDF_BLUE))
-    first.extend(_pdf_text(392, y - 50, "Puntuacion tecnica", size=7.5, color="0.20 0.32 0.48"))
     y -= 99
     metric_rows = _metric_rows(normalized_session["performance_items"])
     y = _section(first, 3, "Desempeno observado", y)
@@ -634,7 +535,7 @@ def build_pdf_bytes(report_request, normalized_session, logo_image=None):
         card_y = y - (index // 2) * 68
         _metric_card(first, x, card_y, metric, value, accent=PDF_BLUE if index < 2 else "0.96 0.54 0.16")
     y -= 136
-    _page_footer(first, report_id, session_id, 2, total_pages=4)
+    _page_footer(first, report_id, session_id, 2, total_pages=3)
 
     detail = []
     y = _page_header(detail, report_id, continuation=True)
@@ -644,53 +545,8 @@ def build_pdf_bytes(report_request, normalized_session, logo_image=None):
         y = _table(detail, y, ["Indicador", "Valor observado", "Referencia provisional"], complementary_rows, [200, 110, 158], row_height=18) - 18
     else:
         detail.extend(_pdf_text(PDF_LEFT, y - 20, "Sin indicadores complementarios disponibles.", size=9, color="0.20 0.32 0.48"))
-    _page_footer(detail, report_id, session_id, 3, total_pages=4)
-
-    second = []
-    y = _page_header(second, report_id, continuation=True)
-    y = _section(second, 5, "Observaciones del especialista", y)
-    observation = report_request.specialist_observation or "Sin observaciones registradas."
-    observation_lines = wrap(observation, 78)
-    observation_height = max(50, len(observation_lines) * 12 + 20)
-    second.extend(_pdf_rect(PDF_LEFT, y - observation_height + 5, 468, observation_height, fill="0.99 0.97 0.92", stroke="0.92 0.76 0.42"))
-    second.extend(_pdf_text(88, y - 14, observation_lines, size=9, color=PDF_NAVY, leading=12))
-    y -= observation_height + 20
-    y = _section(second, 6, "Trazabilidad del documento", y)
-    if report_request.reviewed_by:
-        admin = (
-            report_request.reviewed_by.get_full_name().strip()
-            or report_request.reviewed_by.username
-        )
-    elif report_request.reviewed_at:
-        admin = "Autogenerado sin aprobacion (permiso del especialista)"
-    else:
-        admin = "Sistema"
-    y = _timeline(second, y, [
-        ("Sesion aplicada", requester["display_name"], evaluated_at),
-        ("Informe solicitado", requester["display_name"], format_datetime_for_report(report_request.requested_at)),
-        ("Emision autorizada", admin, format_datetime_for_report(report_request.reviewed_at)),
-        ("Documento emitido", "Sistema", format_datetime_for_report(report_request.generated_at)),
-    ]) - 2
-    second.extend(_pdf_rect(PDF_LEFT, y - 33, 468, 31, fill="0.96 0.98 1.0"))
-    second.extend(_pdf_text(84, y - 14, "Los identificadores son seudonimizados; los datos de contacto se conservan solo en la auditoria autenticada.", size=8, color="0.20 0.32 0.48"))
-    y -= 54
-    y = _section(second, 7, "Advertencias", y)
-    warning_lines = [
-        "Este documento no es un diagnostico. Contiene una estimacion automatizada basada en datos de",
-        "comportamiento registrados durante una sesion de estimulacion cognitiva con realidad virtual.",
-        "El modelo se encuentra en validacion. Su interpretacion clinica esta pendiente de validacion.",
-        "Las referencias de desempeno no estan disponibles todavia; su ausencia no debe reemplazarse por valores",
-        "normativos o inferidos.",
-    ]
-    # Reserve independent padding for the heading and the final text baseline.
-    # The former height only accounted for body lines and clipped descenders
-    # in the last warning line in some PDF viewers.
-    height = len(warning_lines) * 12 + 42
-    second.extend(_pdf_rect(PDF_LEFT, y - height + 4, 468, height, fill="1.0 0.96 0.86", stroke="0.91 0.61 0.05"))
-    second.extend(_pdf_text(88, y - 15, "INFORMACION IMPORTANTE", bold=True, size=8.5, color="0.55 0.28 0.00"))
-    second.extend(_pdf_text(88, y - 31, warning_lines, size=8.5, color="0.22 0.17 0.10", leading=12))
-    _page_footer(second, report_id, session_id, 4, total_pages=4)
-    return assemble_pdf_bytes([cover, "\n".join(first).encode("latin-1"), "\n".join(detail).encode("latin-1"), "\n".join(second).encode("latin-1")], logo_image=logo_image)
+    _page_footer(detail, report_id, session_id, 3, total_pages=3)
+    return assemble_pdf_bytes([cover, "\n".join(first).encode("latin-1"), "\n".join(detail).encode("latin-1")], logo_image=logo_image)
 
 
 def _sorted_metric_items(metrics):
@@ -710,12 +566,6 @@ def normalize_snapshot_for_report(snapshot):
     """
     metrics = snapshot.get("metrics") or {}
     patient_info = snapshot.get("patient_info") or {}
-    dominant_hand = (
-        patient_info.get("dominant_hand")
-        or patient_info.get("ManoPredominante")
-        or patient_info.get("dominantHand")
-        or metrics.get("ManoPredominante")
-    )
     age = patient_info.get("age") or patient_info.get("Edad") or metrics.get("Edad")
     return {
         "session_id": snapshot.get("session_id"),
@@ -723,7 +573,6 @@ def normalize_snapshot_for_report(snapshot):
         "patient": {
             "internal_id": None,
             "age": age,
-            "dominant_hand": dominant_hand,
         },
         "metrics": {"scene_type": metrics.get("TipoEscena")},
         "performance_items": _sorted_metric_items(metrics),

@@ -192,17 +192,7 @@ class SessionDetailView(RoleRequiredMixin, View):
 
         metrics = session.get("metrics") or {}
         if session.get("status") == "completed" and metrics:
-            patient_info = (
-                session.get("patient") or session.get("patient_info") or session
-            )
-            cached_metrics = dict(metrics)
-            if (
-                patient_info.get("dominant_hand") is not None
-                and cached_metrics.get("dominant_hand") is None
-                and cached_metrics.get("ManoPredominante") is None
-            ):
-                cached_metrics["dominant_hand"] = patient_info["dominant_hand"]
-            cache_session_metrics(session_id, cached_metrics)
+            cache_session_metrics(session_id, metrics)
         metrics_items = _build_sorted_metrics_items(metrics) if metrics else []
         cognitive_result = predict_cognitive_result(
             metrics,

@@ -1,0 +1,22 @@
+$kind: http-request
+name: "2️⃣ VR: Aceptar Términos"
+url: "{{base_url}}/terms/accept"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "version_id": "{{version_id}}",
+      "content_hash": "{{content_hash}}",
+      "application_version": "0.0"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      var jsonData = pm.response.json();
+      pm.collectionVariables.set("acceptance_token", jsonData.acceptance_token);
+      console.log("acceptance_token:", jsonData.acceptance_token);
+    language: text/javascript
+order: 4000

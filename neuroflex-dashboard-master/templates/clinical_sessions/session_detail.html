@@ -68,22 +68,6 @@
                         {% endif %}
                     </div>
                 </div>
-                <div class="rounded-2xl border border-border bg-mist px-4 py-4">
-                    <p class="text-sm font-semibold text-slate-600">Probabilidad técnica de la clase</p>
-                    <p class="mt-2 text-base font-semibold text-ink-900">{{ cognitive_result.technical_confidence_label }}</p>
-                </div>
-                <div class="rounded-2xl border border-border bg-mist px-4 py-4">
-                    <p class="text-sm font-semibold text-slate-600">Probabilidades estimadas por banda</p>
-                    <ul class="mt-2 space-y-1 text-sm text-ink-900">
-                        {% for band, probability in cognitive_result.probability_labels.items %}
-                            <li>{{ band|capfirst }}: {{ probability }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <div class="rounded-2xl border border-border bg-mist px-4 py-4 sm:col-span-2">
-                    <p class="text-sm font-semibold text-slate-600">Modelo utilizado</p>
-                    <p class="mt-2 text-base font-semibold text-ink-900">{{ cognitive_result.model_name }}</p>
-                </div>
             </div>
         </div>
         <div class="mt-5">

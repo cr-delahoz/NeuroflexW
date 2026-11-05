@@ -1,0 +1,13 @@
+# Use this workspace to collaborate
+workspace:
+  id: 2cbb3a93-0f2a-4ba1-8b01-7c0784c0c476
+
+cloudResources:
+  collections:
+    ../postman/collections/VR Session Flow - Dev: a5feb246-a559-4954-babb-905628c71855
+
+# All resources in the `postman/` folder are automatically registered in Local View.
+# Point to additional files outside the `postman/` folder to register them individually. Example:
+#localResources:
+#  collections:
+#    - ../tests/E2E Test Collection/

@@ -1,0 +1,43 @@
+{
+  "executed_at_utc": "2026-11-05T20:16:19.526303+00:00",
+  "synthetic": true,
+  "base_url": "https://i1eum0j7lf.execute-api.us-east-1.amazonaws.com/dev",
+  "steps": [
+    {
+      "name": "1 Obtener términos",
+      "http": 200
+    },
+    {
+      "name": "0 Autenticación Cognito",
+      "http": 200
+    },
+    {
+      "name": "2 Aceptar términos de prueba",
+      "http": 201
+    },
+    {
+      "name": "3 Crear sesión sintética",
+      "http": 201
+    },
+    {
+      "name": "4 Confirmar sesión",
+      "http": 200
+    },
+    {
+      "name": "5 Enviar métricas ficticias",
+      "http": 200
+    },
+    {
+      "name": "6 Verificar sesión (página 1)",
+      "http": 200
+    }
+  ],
+  "terms_version": "0.0.1",
+  "cognito_groups": [
+    "Specialist"
+  ],
+  "session_id": "2a5386e5-8c1a-455b-94ac-af5982a2c0b3",
+  "session_status": "completed",
+  "metrics_match": true,
+  "result": "completed_verified"
+}

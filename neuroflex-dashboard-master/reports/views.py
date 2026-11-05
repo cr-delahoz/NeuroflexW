@@ -117,11 +117,6 @@ class ReportRequestCreateView(RoleRequiredMixin, View):
                                 or api_session.get("patient_info")
                                 or api_session
                             )
-                            patient_hand = (
-                                patient_info.get("dominant_hand")
-                                or patient_info.get("ManoPredominante")
-                                or patient_info.get("dominantHand")
-                            )
                             patient_age = patient_info.get("age") or patient_info.get("Edad")
                             snapshot = {
                                 "session_id": api_session.get("session_id"),
@@ -130,15 +125,8 @@ class ReportRequestCreateView(RoleRequiredMixin, View):
                                 "vr_user_email": api_session.get("vr_user_email"),
                                 "status": api_session.get("status"),
                                 "metrics": api_session.get("metrics"),
-                                # Keep only inference/display fields; never snapshot patient identifiers.
-                                "patient_info": {
-                                    key: value
-                                    for key, value in (
-                                        ("age", patient_age),
-                                        ("dominant_hand", patient_hand),
-                                    )
-                                    if value is not None
-                                },
+                                # Keep display fields only; never snapshot patient identifiers.
+                                "patient_info": {"age": patient_age} if patient_age is not None else {},
                             }
                             try:
                                 report_request = create_report_request(

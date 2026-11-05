@@ -1,0 +1,26 @@
+$kind: http-request
+name: "0️⃣ Helper: Obtener Cognito Token"
+url: https://cognito-idp.{{cognito_region}}.amazonaws.com/
+method: POST
+headers:
+  Content-Type: application/x-amz-json-1.1
+  X-Amz-Target: AWSCognitoIdentityProviderService.InitiateAuth
+body:
+  type: json
+  content: |-
+    {
+      "AuthFlow": "USER_PASSWORD_AUTH",
+      "ClientId": "{{cognito_client_id}}",
+      "AuthParameters": {
+        "USERNAME": "{{software_username}}",
+        "PASSWORD": "{{software_password}}"
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      var jsonData = pm.response.json();
+      pm.collectionVariables.set("id_token", jsonData.AuthenticationResult.IdToken);
+      console.log("id_token guardado:", jsonData.AuthenticationResult.IdToken);
+    language: text/javascript
+order: 1000

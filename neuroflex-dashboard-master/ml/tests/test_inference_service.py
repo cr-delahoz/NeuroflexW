@@ -48,11 +48,25 @@ class PredictCognitiveResultTests(SimpleTestCase):
         self.assertIn("TiempoCapturarNumero", result["user_message"])
         self.assertIn("TiempoCapturarNumero", result["missing_features"])
 
-    def test_missing_hand_returns_unavailable(self):
+    def test_inference_is_available_without_requesting_hand(self):
         result = predict_cognitive_result(FULL_METRICS)
 
-        self.assertFalse(result["available"])
-        self.assertIn("ManoPredominante", result["missing_features"])
+        self.assertTrue(result["available"])
+        self.assertIn(result["predicted_class"], {"bajo", "medio", "alto"})
+        self.assertAlmostEqual(sum(result["probabilities"].values()), 1.0, places=5)
+        self.assertNotIn("ManoPredominante", result.get("missing_features", []))
+
+    def test_old_hand_metadata_does_not_change_the_result(self):
+        expected = predict_cognitive_result(FULL_METRICS)
+        self.assertTrue(expected["available"])
+        for hand in (1, 2, 3, "right", "left", "invalid"):
+            with self.subTest(hand=hand):
+                result = predict_cognitive_result(
+                    dict(FULL_METRICS, ManoPredominante=hand),
+                    {"dominant_hand": hand},
+                )
+                self.assertTrue(result["available"])
+                self.assertEqual(result["probabilities"], expected["probabilities"])
 
     def test_empty_metrics_returns_unavailable(self):
         result = predict_cognitive_result({}, PATIENT_INFO)

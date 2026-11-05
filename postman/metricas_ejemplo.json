@@ -1,0 +1,13 @@
+{
+  "TiempoRespuestaPararse": 2.4,
+  "Precision": 0.8,
+  "TiempoActivoTarea": 120.0,
+  "CantAciertasTotales": 8,
+  "ObjetosInteractuadosCorrectamente": 8,
+  "TiempoRespuestaPregunta1": 3.1,
+  "TiempoRespuestaPregunta2": 4.2,
+  "TiempoRespuestaPregunta3": 2.8,
+  "TiempoCapturarNumero": 5.6,
+  "TiempoTutorial": 30.0,
+  "TipoEscena": 1
+}

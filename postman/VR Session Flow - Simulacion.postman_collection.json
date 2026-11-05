@@ -1,0 +1,603 @@
+{
+  "info": {
+    "name": "VR Session Flow - Simulacion sin visor",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Ejecutar solo la carpeta 01 en orden. Usa métricas ficticias. Ver postman/README.md. La carpeta 02 es administrativa y se ejecuta por separado."
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://i1eum0j7lf.execute-api.us-east-1.amazonaws.com/dev",
+      "type": "string"
+    },
+    {
+      "key": "cognito_region",
+      "value": "us-east-1",
+      "type": "string"
+    },
+    {
+      "key": "cognito_client_id",
+      "value": "65v6nki3fh1sgqbavlepf7gqkc",
+      "type": "string"
+    },
+    {
+      "key": "software_username",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "software_password",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "application_version",
+      "value": "postman-sim-1.0.0",
+      "type": "string"
+    },
+    {
+      "key": "confirm_path",
+      "value": "/sessions/confirm",
+      "type": "string"
+    },
+    {
+      "key": "id_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "confirmed_by_sub",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "version_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "content_hash",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "acceptance_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "session_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "display_code",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "metrics_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "session_status",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "confirmed_email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_id_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "terms_version",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "terms",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+          "if (!ok) pm.execution.setNextRequest(null);",
+          "pm.test('HTTP 2xx', () => pm.expect(ok, 'HTTP ' + pm.response.code).to.be.true);",
+          "if (!ok) { pm.execution.setNextRequest(null); throw new Error('Flujo detenido: HTTP ' + pm.response.code); }",
+          "if (pm.response.text().trim()) {",
+          "    try { pm.response.json(); } catch (e) { pm.execution.setNextRequest(null); throw new Error('La API devolvió una respuesta sin JSON válido'); }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Flujo VR simulado (ejecutar esta carpeta)",
+      "item": [
+        {
+          "name": "0 - Software: obtener token Cognito",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-amz-json-1.1"
+              },
+              {
+                "key": "X-Amz-Target",
+                "value": "AWSCognitoIdentityProviderService.InitiateAuth"
+              }
+            ],
+            "url": "https://cognito-idp.{{cognito_region}}.amazonaws.com/",
+            "description": "Usa la cuenta SPECIALIST que debe recibir la sesión. No guarda contraseñas en el archivo ni imprime tokens.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get(\"cognito_region\")) throw new Error('Falta la variable cognito_region; ejecuta el paso anterior.');",
+                  "if (!pm.variables.get(\"cognito_client_id\")) throw new Error('Falta la variable cognito_client_id; ejecuta el paso anterior.');",
+                  "if (!pm.variables.get(\"software_username\")) throw new Error('Falta la variable software_username; ejecuta el paso anterior.');",
+                  "if (!pm.variables.get(\"software_password\")) throw new Error('Falta la variable software_password; ejecuta el paso anterior.');",
+                  "['id_token', 'confirmed_by_sub', 'version_id', 'content_hash', 'acceptance_token',",
+                  " 'session_id', 'display_code', 'metrics_token', 'session_status', 'confirmed_email'].forEach(k => pm.collectionVariables.unset(k));",
+                  "pm.request.body.update(JSON.stringify({AuthFlow:'USER_PASSWORD_AUTH', ClientId:pm.variables.get('cognito_client_id'),",
+                  " AuthParameters:{USERNAME:pm.variables.get('software_username'), PASSWORD:pm.variables.get('software_password')}}));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 200 || pm.response.code >= 300) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error('Request fallida: HTTP ' + pm.response.code);",
+                  "}",
+                  "const data = pm.response.json();",
+                  "",
+                  "",
+                  "",
+                  "if (!data.AuthenticationResult || !data.AuthenticationResult.IdToken) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error('Cognito requiere un challenge (' + (data.ChallengeName || 'desconocido') + '); completa el acceso fuera del Runner.');",
+                  "}",
+                  "pm.collectionVariables.set('id_token', data.AuthenticationResult.IdToken);",
+                  "// Decode only to obtain the query parameter; the API validates the JWT.",
+                  "const payload = data.AuthenticationResult.IdToken.split('.')[1];",
+                  "const claims = JSON.parse(Buffer.from(payload, 'base64').toString('utf8'));",
+                  "pm.collectionVariables.set('confirmed_by_sub', claims.sub);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1 - VR: obtener términos",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/terms/current",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get(\"base_url\")) throw new Error('Falta la variable base_url; ejecuta el paso anterior.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 200 || pm.response.code >= 300) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error('Request fallida: HTTP ' + pm.response.code);",
+                  "}",
+                  "const data = pm.response.json();",
+                  "if (!data[\"version_id\"]) { pm.execution.setNextRequest(null); throw new Error('Respuesta sin version_id'); }",
+                  "if (!data[\"content_hash\"]) { pm.execution.setNextRequest(null); throw new Error('Respuesta sin content_hash'); }",
+                  "pm.collectionVariables.set(\"version_id\", data[\"version_id\"]);",
+                  "pm.collectionVariables.set(\"content_hash\", data[\"content_hash\"]);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2 - VR: aceptar términos de prueba",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/terms/accept",
+            "description": "Simula la aceptación únicamente para esta prueba técnica con datos ficticios.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"version_id\": \"{{version_id}}\",\n  \"content_hash\": \"{{content_hash}}\",\n  \"application_version\": \"{{application_version}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get(\"version_id\")) throw new Error('Falta la variable version_id; ejecuta el paso anterior.');",
+                  "if (!pm.variables.get(\"content_hash\")) throw new Error('Falta la variable content_hash; ejecuta el paso anterior.');",
+                  "if (!pm.variables.get(\"application_version\")) throw new Error('Falta la variable application_version; ejecuta el paso anterior.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 200 || pm.response.code >= 300) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error('Request fallida: HTTP ' + pm.response.code);",
+                  "}",
+                  "const data = pm.response.json();",
+                  "if (!data[\"acceptance_token\"]) { pm.execution.setNextRequest(null); throw new Error('Respuesta sin acceptance_token'); }",
+                  "pm.collectionVariables.set(\"acceptance_token\", data[\"acceptance_token\"]);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3 - VR: crear sesión",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/sessions",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"acceptance_token\": \"{{acceptance_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get(\"acceptance_token\")) throw new Error('Falta la variable acceptance_token; ejecuta el paso anterior.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 200 || pm.response.code >= 300) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error('Request fallida: HTTP ' + pm.response.code);",
+                  "}",
+                  "const data = pm.response.json();",
+                  "if (!data[\"session_id\"]) { pm.execution.setNextRequest(null); throw new Error('Respuesta sin session_id'); }",
+                  "if (!data[\"display_code\"]) { pm.execution.setNextRequest(null); throw new Error('Respuesta sin display_code'); }",
+                  "if (!data[\"metrics_token\"]) { pm.execution.setNextRequest(null); throw new Error('Respuesta sin metrics_token'); }",
+                  "pm.collectionVariables.set(\"session_id\", data[\"session_id\"]);",
+                  "pm.collectionVariables.set(\"display_code\", data[\"display_code\"]);",
+                  "pm.collectionVariables.set(\"metrics_token\", data[\"metrics_token\"]);",
+                  "pm.collectionVariables.set('session_status', data.status || 'created');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4 - Software: confirmar sesión",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{id_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}{{confirm_path}}",
+            "description": "Solo se solicita el código de sesión (display_code). Ruta /sessions/confirm verificada contra /dev. Para probar también la asociación SQLite y auditoría de Django, ejecuta 0–3, confirma el código en el dashboard y continúa en 5.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"display_code\": \"{{display_code}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get(\"id_token\")) throw new Error('Falta la variable id_token; ejecuta el paso anterior.');",
+                  "if (!pm.variables.get(\"display_code\")) throw new Error('Falta la variable display_code; ejecuta el paso anterior.');",
+                  "if (!pm.variables.get(\"session_id\")) throw new Error('Falta la variable session_id; ejecuta el paso anterior.');",
+                  "if (!pm.variables.get(\"confirm_path\")) throw new Error('Falta la variable confirm_path; ejecuta el paso anterior.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 200 || pm.response.code >= 300) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error('Request fallida: HTTP ' + pm.response.code);",
+                  "}",
+                  "const data = pm.response.json();",
+                  "",
+                  "",
+                  "",
+                  "if (data.session_id && data.session_id !== pm.variables.get('session_id')) {",
+                  "    pm.execution.setNextRequest(null); throw new Error('La API confirmó otra sesión.');",
+                  "}",
+                  "pm.collectionVariables.set('session_status', data.status || 'confirmed');",
+                  "if (data.confirmed_email) pm.collectionVariables.set('confirmed_email', data.confirmed_email);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5 - VR: enviar métricas ficticias",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Metrics-Token",
+                "value": "{{metrics_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/sessions/{{session_id}}/metrics",
+            "description": "Valores sintéticos, no mediciones de una persona. Precision=0.8 es un ejemplo técnico; confirmar la escala con el contrato del visor. No se solicita mano dominante para completar el flujo.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"TiempoRespuestaPararse\": 2.4,\n  \"Precision\": 0.8,\n  \"TiempoActivoTarea\": 120.0,\n  \"CantAciertasTotales\": 8,\n  \"ObjetosInteractuadosCorrectamente\": 8,\n  \"TiempoRespuestaPregunta1\": 3.1,\n  \"TiempoRespuestaPregunta2\": 4.2,\n  \"TiempoRespuestaPregunta3\": 2.8,\n  \"TiempoCapturarNumero\": 5.6,\n  \"TiempoTutorial\": 30.0,\n  \"TipoEscena\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get(\"session_id\")) throw new Error('Falta la variable session_id; ejecuta el paso anterior.');",
+                  "if (!pm.variables.get(\"metrics_token\")) throw new Error('Falta la variable metrics_token; ejecuta el paso anterior.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "    pm.collectionVariables.set('session_status', 'metrics_sent');",
+                  "} else {",
+                  "    pm.execution.setNextRequest(null); throw new Error('No se aceptaron las métricas: HTTP ' + pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6 - Software: verificar sesión y métricas",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{id_token}}"
+              }
+            ],
+            "url": "{{base_url}}/sessions?confirmed_by_sub={{confirmed_by_sub}}",
+            "description": "GET usado por Django. Si devuelve next_cursor y no está la sesión, repetir agregando &cursor=<next_cursor>."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get(\"id_token\")) throw new Error('Falta la variable id_token; ejecuta el paso anterior.');",
+                  "if (!pm.variables.get(\"confirmed_by_sub\")) throw new Error('Falta la variable confirmed_by_sub; ejecuta el paso anterior.');",
+                  "if (!pm.variables.get(\"session_id\")) throw new Error('Falta la variable session_id; ejecuta el paso anterior.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 200 || pm.response.code >= 300) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error('Request fallida: HTTP ' + pm.response.code);",
+                  "}",
+                  "const data = pm.response.json();",
+                  "",
+                  "",
+                  "",
+                  "const sessions = data.sessions || [];",
+                  "const session = sessions.find(s => s.session_id === pm.variables.get('session_id'));",
+                  "pm.test('La sesión aparece en esta página', () => pm.expect(session, 'Si hay next_cursor, consultar la página siguiente con cursor').to.exist);",
+                  "if (!session) {",
+                  "    pm.execution.setNextRequest(null); throw new Error('Sesión no encontrada en esta página. Revisa next_cursor y el usuario que confirmó.');",
+                  "}",
+                  "pm.test('Sesión completada', () => pm.expect(session.status).to.eql('completed'));",
+                  "const expected = {\"TiempoRespuestaPararse\": 2.4, \"Precision\": 0.8, \"TiempoActivoTarea\": 120.0, \"CantAciertasTotales\": 8, \"ObjetosInteractuadosCorrectamente\": 8, \"TiempoRespuestaPregunta1\": 3.1, \"TiempoRespuestaPregunta2\": 4.2, \"TiempoRespuestaPregunta3\": 2.8, \"TiempoCapturarNumero\": 5.6, \"TiempoTutorial\": 30.0, \"TipoEscena\": 1};",
+                  "pm.test('Se conservaron las once métricas enviadas', () => {",
+                  "    Object.keys(expected).forEach(k => pm.expect(session.metrics[k], k).to.eql(expected[k]));",
+                  "});",
+                  "pm.collectionVariables.set('session_status', session.status);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Administración opcional (ejecutar aparte)",
+      "item": [
+        {
+          "name": "ADMIN opcional - crear versión de términos",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_id_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/terms/versions",
+            "description": "Ejecutar aparte con token ADMIN solo si hace falta una versión. Se crea sin publicar. No forma parte de cada sesión y no reemplaza los términos vigentes.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"version_id\": \"{{terms_version}}\",\n  \"title\": \"Términos y condiciones de NeuroFlex VR\",\n  \"content\": \"\",\n  \"published\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get(\"admin_id_token\")) throw new Error('Falta la variable admin_id_token; ejecuta el paso anterior.');",
+                  "if (!pm.variables.get(\"terms_version\")) throw new Error('Falta la variable terms_version; ejecuta el paso anterior.');",
+                  "if (!pm.variables.get(\"terms\")) throw new Error('Falta la variable terms; ejecuta el paso anterior.');",
+                  "pm.request.body.update(JSON.stringify({version_id:pm.variables.get('terms_version'),",
+                  " title:'Términos y condiciones de NeuroFlex VR', content:String(pm.variables.get('terms')).replace(/\\r\\n?/g, '\\n'), published:false}));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 200 || pm.response.code >= 300) {",
+                  "    pm.execution.setNextRequest(null);",
+                  "    throw new Error('Request fallida: HTTP ' + pm.response.code);",
+                  "}",
+                  "const data = pm.response.json();",
+                  "if (!data[\"version_id\"]) { pm.execution.setNextRequest(null); throw new Error('Respuesta sin version_id'); }",
+                  "pm.collectionVariables.set(\"created_terms_version\", data[\"version_id\"]);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

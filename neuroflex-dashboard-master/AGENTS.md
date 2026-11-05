@@ -58,7 +58,7 @@ No mezclar responsabilidades.
 
 ### Feature Builder
 
-`ml/services/performance_feature_builder.py` construye las nueve entradas del pipeline congelado: mano dominante, siete tiempos de sesión y tipo de escena. Requiere `dominant_hand`/`ManoPredominante` desde los metadatos del paciente.
+`ml/services/performance_feature_builder.py` construye las entradas del pipeline congelado a partir de siete tiempos de sesión y tipo de escena. No solicitar, leer ni validar mano dominante para crear/vincular una sesión o ejecutar inferencia. La columna histórica `dominant_hand` se conserva únicamente por compatibilidad con el pipeline congelado, siempre como `NaN` para su imputador ya ajustado. La vinculación solo solicita `display_code`.
 
 El preprocesamiento ajustado (imputación, escalado y codificación categórica) forma parte del pipeline serializado y se ejecuta dentro del servicio de inferencia.
 

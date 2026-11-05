@@ -1,0 +1,14 @@
+$kind: http-request
+name: "1️⃣ VR: Obtener Términos"
+url: "{{base_url}}/terms/current"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      var jsonData = pm.response.json();
+      pm.collectionVariables.set("version_id", jsonData.version_id);
+      pm.collectionVariables.set("content_hash", jsonData.content_hash);
+      console.log("version_id:", jsonData.version_id);
+      console.log("content_hash:", jsonData.content_hash);
+    language: text/javascript
+order: 3000

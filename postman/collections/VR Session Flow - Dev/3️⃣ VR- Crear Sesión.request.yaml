@@ -1,0 +1,24 @@
+$kind: http-request
+name: "3️⃣ VR: Crear Sesión"
+url: "{{base_url}}/sessions"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "acceptance_token": "{{acceptance_token}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      var jsonData = pm.response.json();
+      pm.collectionVariables.set("session_id", jsonData.session_id);
+      pm.collectionVariables.set("display_code", jsonData.display_code);
+      pm.collectionVariables.set("metrics_token", jsonData.metrics_token);
+      console.log("session_id:", jsonData.session_id);
+      console.log("display_code:", jsonData.display_code);
+      console.log("metrics_token:", jsonData.metrics_token);
+    language: text/javascript
+order: 5000

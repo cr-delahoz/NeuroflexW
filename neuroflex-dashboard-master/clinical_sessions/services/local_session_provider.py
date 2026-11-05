@@ -208,9 +208,6 @@ class LocalSessionProvider:
             "patient": {
                 "internal_id": None,
                 "age": patient_info.get("age") if patient_info else None,
-                "dominant_hand": (
-                    patient_info.get("dominant_hand") if patient_info else None
-                ),
                 "updated_at": patient_updated_at,
             },
             "metrics": self._normalize_metrics(data),
@@ -255,14 +252,6 @@ class LocalSessionProvider:
 
         if patient_info and patient_info.get("age") is not None:
             items.append({"label": "Edad", "value": patient_info["age"]})
-
-        if patient_info and patient_info.get("dominant_hand"):
-            items.append(
-                {
-                    "label": "Mano dominante",
-                    "value": patient_info["dominant_hand"],
-                }
-            )
 
         if "TipoEscena" in data:
             items.append({"label": "Tipo de escena", "value": data["TipoEscena"]})

@@ -1,0 +1,14 @@
+$kind: http-request
+name: "4️⃣ Software: Confirmar Sesión"
+url: "{{base_url}}/software/sessions/confirm"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{id_token}}
+body:
+  type: json
+  content: |-
+    {
+      "display_code": "{{display_code}}"
+    }
+order: 6000

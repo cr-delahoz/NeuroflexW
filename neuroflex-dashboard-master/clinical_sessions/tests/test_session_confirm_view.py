@@ -36,6 +36,14 @@ class SessionConfirmViewTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
 
+    def test_confirmation_form_requires_only_session_code(self):
+        self._login_with_id_token("specialist_user")
+
+        response = self.client.get(reverse("clinical_sessions:session-confirm"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(list(response.context["form"].fields), ["display_code"])
+
     @patch("clinical_sessions.views.confirm_and_associate_session")
     def test_specialist_can_confirm_session(self, mock_confirm):
         mock_confirm.return_value = SpecialistSession(

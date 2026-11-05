@@ -29,22 +29,6 @@ NUMERIC_FEATURE_ALIASES = {
     "TiempoTutorial": ("TiempoTutorial", "tutorial_time"),
 }
 
-HAND_CODES = {
-    "right": 1,
-    "derecha": 1,
-    "left": 2,
-    "izquierda": 2,
-    "ambidextrous": 3,
-    "ambidiestro": 3,
-    "1": 1,
-    "1.0": 1,
-    "2": 2,
-    "2.0": 2,
-    "3": 3,
-    "3.0": 3,
-}
-
-
 class MissingPerformanceFeatureError(ValueError):
     """Raised when a required model input is missing or invalid."""
 
@@ -76,19 +60,10 @@ def build_performance_features(metrics, columns=None, patient_info=None):
     """Return one raw feature row in the exact order expected by the pipeline."""
     metrics = metrics or {}
     columns = columns or FEATURE_COLUMNS
-    raw = {}
+    # Compatibility with the frozen pipeline's input schema only. Hand data is
+    # never read from the session or requested from the specialist.
+    raw = {"dominant_hand": np.nan}
     missing = []
-
-    hand = _first_value(
-        (patient_info, metrics),
-        ("dominant_hand", "ManoPredominante", "dominantHand"),
-    )
-    if hand is None:
-        missing.append("ManoPredominante")
-    else:
-        raw["dominant_hand"] = HAND_CODES.get(str(hand).strip().lower())
-        if raw["dominant_hand"] is None:
-            missing.append("ManoPredominante")
 
     for column, aliases in NUMERIC_FEATURE_ALIASES.items():
         value = _number(_first_value((metrics,), aliases))

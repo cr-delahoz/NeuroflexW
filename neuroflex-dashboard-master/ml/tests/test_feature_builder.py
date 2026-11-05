@@ -29,7 +29,7 @@ class BuildPerformanceFeaturesTests(SimpleTestCase):
         )
 
         self.assertEqual(list(features), FEATURE_COLUMNS)
-        self.assertEqual(features["dominant_hand"], 1)
+        self.assertTrue(math.isnan(features["dominant_hand"]))
         self.assertEqual(features["TiempoActivoTarea"], 300.0)
         self.assertEqual(features["TipoEscena"], 1.0)
 
@@ -53,8 +53,15 @@ class BuildPerformanceFeaturesTests(SimpleTestCase):
 
         self.assertEqual(ctx.exception.missing_features, ["TiempoCapturarNumero"])
 
-    def test_missing_hand_is_reported(self):
-        with self.assertRaises(MissingPerformanceFeatureError) as ctx:
-            build_performance_features(FULL_METRICS)
+    def test_hand_is_never_read_or_required(self):
+        for patient_info in (
+            None, {}, {"dominant_hand": None}, {"dominant_hand": ""},
+            {"dominant_hand": "unknown"}, {"dominant_hand": "right"},
+            {"ManoPredominante": "left"}, {"dominantHand": 3},
+        ):
+            with self.subTest(patient_info=patient_info):
+                metrics = dict(FULL_METRICS, dominant_hand=2, ManoPredominante=1, dominantHand=3)
+                features = build_performance_features(metrics, patient_info=patient_info)
 
-        self.assertIn("ManoPredominante", ctx.exception.missing_features)
+                self.assertEqual(list(features), FEATURE_COLUMNS)
+                self.assertTrue(math.isnan(features["dominant_hand"]))

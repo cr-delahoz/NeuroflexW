@@ -151,7 +151,7 @@ class ClinicalSessionViewTests(TestCase):
         self.assertContains(response, "Resultado automatizado no disponible")
 
     @patch("clinical_sessions.views.get_session_confirmed_by")
-    def test_session_detail_shows_automated_result_section_when_available(
+    def test_session_detail_shows_automated_result_without_hand_metadata(
         self, mock_get_session
     ):
         mock_get_session.return_value = {
@@ -170,7 +170,6 @@ class ClinicalSessionViewTests(TestCase):
                 "TipoEscena": 1,
                 "TiempoCapturarNumero": 2.8,
             },
-            "patient_info": {"dominant_hand": 1},
         }
         self._login_with_neuroflex_session()
 

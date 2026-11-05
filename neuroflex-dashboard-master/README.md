@@ -8,8 +8,8 @@ Aplicación web Django para administrar usuarios, visualizar sesiones clínicas 
 
 - **Roles ADMIN y SPECIALIST** — administración de usuarios, dashboards diferenciados y control de acceso.
 - **Sesiones clínicas** — visualización y detalle de sesiones desde JSON locales (reemplazable por API REST).
-- **Machine Learning** — MLP congelado con dropout para clasificar rangos (`bajo`, `medio`, `alto`) de objetos interactuados correctamente. Se muestra como resultado provisional, no diagnóstico, y usa métricas de sesión y mano dominante.
-- **Informes PDF** — solicitud, aprobación, rechazo y generación de informes clínicos.
+- **Machine Learning** — MLP congelado con dropout para clasificar rangos (`bajo`, `medio`, `alto`) de objetos interactuados correctamente. Se muestra como resultado provisional, no diagnóstico, y usa las métricas de sesión. La vinculación solo requiere el código de sesión.
+- **Informes PDF** — solicitud, aprobación, rechazo y generación de informes clínicos. El documento contiene portada y puntos 1–4; se omiten los apartados 5 (observaciones), 6 (trazabilidad) y 7 (advertencias).
 - **Auditoría** — registro de eventos con exportación CSV y PDF.
 - **Retroalimentación de carga** — spinners en botones, paginación y acciones mediante Tailwind + JS vanilla (`static/js/ui-feedback.js`).
 - **Updater interno** — barra de progreso con polling a `/updater/progress/<job_id>/`, ejecución de batch sin consola Windows, metadatos vía `latest.json`.
@@ -19,9 +19,11 @@ Aplicación web Django para administrar usuarios, visualizar sesiones clínicas 
 
 El único modelo del dashboard es `ml/model_artifacts/dropout_objects_model.joblib`, exportado por `../neuroflex_mlp_dropout_objetos_3clases.ipynb`. Incluye el preprocesamiento ajustado y la red MLP con dropout; el dashboard solo ejecuta inferencia, sin reentrenar.
 
-Las clases estiman objetos correctos: **bajo** (hasta 3), **medio** (más de 3 y hasta 6) y **alto** (más de 6). No representan niveles de deterioro cognitivo. La puntuación técnica del PDF es la probabilidad de la clase predicha. Si faltan entradas, el resultado aparece como no disponible.
+Las clases estiman objetos correctos: **bajo** (hasta 3), **medio** (más de 3 y hasta 6) y **alto** (más de 6). No representan niveles de deterioro cognitivo. El PDF muestra la clase estimada, sin puntuación técnica ni tabla de probabilidades del modelo. Si faltan tiempos requeridos, el resultado aparece como no disponible. No se solicita, lee ni valida la mano dominante: su antigua columna se entrega ausente al imputador del pipeline congelado para conservar su formato de entrada. Para vincular una sesión solo se solicita su código.
 
 Se retiraron el modelo binario Sí/No y sus artefactos. Las configuraciones antiguas de `COGNITIVE_MODEL_MODE` no cambian el modelo utilizado. Los PDF ya emitidos conservan su contenido; los informes nuevos utilizan el MLP de tres clases.
+
+Después de compilar el ejecutable con `neuroflex.spec`, ejecuta `.venv/Scripts/python.exe tools/verify_desktop_build.py --json output/desktop-build/verificacion.json`. Esta comprobación carga los módulos ML desde el archivo del ejecutable, prueba sus artefactos congelados y sus funciones de PDF, y detecta validaciones antiguas de mano dominante o inclusión accidental de datos privados.
 
 ---
 

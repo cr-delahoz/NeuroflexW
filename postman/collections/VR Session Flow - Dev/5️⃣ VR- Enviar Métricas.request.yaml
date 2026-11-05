@@ -1,0 +1,24 @@
+$kind: http-request
+name: "5️⃣ VR: Enviar Métricas"
+url: "{{base_url}}/sessions/{{session_id}}/metrics"
+method: POST
+headers:
+  Content-Type: application/json
+  X-Metrics-Token: "{{metrics_token}}"
+body:
+  type: json
+  content: |-
+    {
+        "TiempoRespuestaPararse": 0.0,
+        "Precision": 0.0,
+        "TiempoActivoTarea": 0.0,
+        "CantAciertasTotales": 0,
+        "ObjetosInteractuadosCorrectamente": 0,
+        "TiempoRespuestaPregunta1": 0.0,
+        "TiempoRespuestaPregunta2": 0.0,
+        "TiempoRespuestaPregunta3": 0.0,
+        "TiempoCapturarNumero": 0.0,
+        "TiempoTutorial": 0.0,
+        "TipoEscena": 0
+    }
+order: 7000

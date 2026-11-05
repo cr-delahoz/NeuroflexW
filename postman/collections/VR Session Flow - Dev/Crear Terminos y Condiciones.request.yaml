@@ -1,0 +1,33 @@
+$kind: http-request
+url: "{{base_url}}/terms/versions"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: Bearer {{id_token}}
+body:
+  type: json
+  content: |-
+    {
+        "version_id": "{{terms_version}}",
+        "title": "Terminos y condiciones de Neuroflex VR",
+        "content": "{{terms}}",
+        "published": true
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      const rawTerms = pm.variables.get('terms');
+
+      if (rawTerms !== undefined && rawTerms !== null) {
+          const normalizedTerms = String(rawTerms).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+          const jsonSafeTerms = normalizedTerms
+              .replace(/\\/g, '\\\\')
+              .replace(/"/g, '\\"')
+              .replace(/\n/g, '\\n');
+
+          pm.variables.set('terms', jsonSafeTerms);
+      } else {
+          pm.variables.set('terms', '');
+      }
+    language: text/javascript
+order: 2000
